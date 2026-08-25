@@ -1,0 +1,281 @@
+"use client";
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import Navbar from "@/components/site/Navbar";
+import {
+  DashboardShell,
+  View,
+  StatusPill,
+  ActionButton,
+  PanelSearch,
+  type NavItem,
+  type PillKind,
+} from "@/components/dash/Dashboard";
+import { LineChart, DoughnutChart, PALETTE } from "@/components/charts/Charts";
+import { T, useToast } from "@/lib/providers";
+
+/* ---------- icons ---------- */
+const IcGrid = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="9" /><rect x="14" y="3" width="7" height="5" /><rect x="14" y="12" width="7" height="9" /><rect x="3" y="16" width="7" height="5" /></svg>;
+const IcCal = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>;
+const IcCard = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" /></svg>;
+const IcHeart = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 21s-7-4.5-7-11a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 6.5-7 11-7 11z" /></svg>;
+const IcStar = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l2.5 6.5L21 9l-5 4.5L17.5 20 12 16.5 6.5 20 8 13.5 3 9l6.5-.5z" /></svg>;
+const IcHelp = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 2.5" /><path d="M12 17h.01" /></svg>;
+const IcUser = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 4-6 8-6s8 2 8 6" /></svg>;
+const IcOut = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 17l5-5-5-5M20 12H9M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4" /></svg>;
+const StarFill = <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.5 6.5L21 9l-5 4.5L17.5 20 12 16.5 6.5 20 8 13.5 3 9l6.5-.5z" /></svg>;
+
+const nav: NavItem[] = [
+  { view: "overview", en: "Overview", hi: "अवलोकन", icon: IcGrid },
+  { view: "bookings", en: "My Bookings", hi: "मेरी बुकिंग", icon: IcCal },
+  { view: "payments", en: "Payments & Invoices", hi: "भुगतान व चालान", icon: IcCard },
+  { view: "saved", en: "Saved Workers", hi: "सहेजे कार्यकर्ता", icon: IcHeart },
+  { view: "ratings", en: "Ratings", hi: "रेटिंग", title: "Rate Your Services", icon: IcStar },
+  { view: "support", en: "Support", hi: "सहायता", title: "Help & Support", icon: IcHelp },
+];
+const extraNav = [
+  { en: "Profile", hi: "प्रोफ़ाइल", icon: IcUser, toast: "Profile settings opened" },
+  { en: "Logout", hi: "लॉगआउट", icon: IcOut, toast: "Signed out" },
+];
+
+type Booking = { id: number; svc: string; who: string; ini: string; color: string; when: string; status: string; kind: PillKind; amt: string };
+const initialBookings: Booking[] = [
+  { id: 1, svc: "AC Repair", who: "Ramesh Solanki", ini: "RS", color: "linear-gradient(135deg,#2dd4bf,#0d9488)", when: "26 Aug, 10:00 AM", status: "Confirmed", kind: "info", amt: "₹529" },
+  { id: 2, svc: "Plumbing — Leak", who: "Anil Verma", ini: "AV", color: "linear-gradient(135deg,#60a5fa,#2563eb)", when: "24 Aug, 06:00 PM", status: "In progress", kind: "warning", amt: "₹349" },
+  { id: 3, svc: "Deep Cleaning", who: "Priya Kumari", ini: "PK", color: "linear-gradient(135deg,#fbbf24,#f59e0b)", when: "18 Aug, 09:00 AM", status: "Completed", kind: "success", amt: "₹699" },
+  { id: 4, svc: "Carpentry — Door", who: "Suresh Kumar", ini: "SK", color: "linear-gradient(135deg,#34d399,#059669)", when: "11 Aug, 02:00 PM", status: "Completed", kind: "success", amt: "₹899" },
+  { id: 5, svc: "Electrical Fitting", who: "Meena Joshi", ini: "MJ", color: "linear-gradient(135deg,#f472b6,#db2777)", when: "02 Aug, 11:00 AM", status: "Completed", kind: "success", amt: "₹449" },
+  { id: 6, svc: "Gardening", who: "Deepak Gowda", ini: "DG", color: "linear-gradient(135deg,#a78bfa,#7c3aed)", when: "28 Jul, 08:00 AM", status: "Cancelled", kind: "danger", amt: "₹0" },
+];
+
+const initialSaved = [
+  { id: 1, n: "Ramesh Solanki", r: "Electrician · Kochi", ini: "RS", color: "linear-gradient(135deg,#2dd4bf,#0d9488)", rate: "4.9" },
+  { id: 2, n: "Priya Kumari", r: "Cleaner · Kochi", ini: "PK", color: "linear-gradient(135deg,#fbbf24,#f59e0b)", rate: "5.0" },
+  { id: 3, n: "Anil Verma", r: "Plumber · Kochi", ini: "AV", color: "linear-gradient(135deg,#60a5fa,#2563eb)", rate: "4.7" },
+  { id: 4, n: "Suresh Kumar", r: "Carpenter · Kochi", ini: "SK", color: "linear-gradient(135deg,#34d399,#059669)", rate: "4.8" },
+  { id: 5, n: "Meena Joshi", r: "Electrician · Kochi", ini: "MJ", color: "linear-gradient(135deg,#f472b6,#db2777)", rate: "4.9" },
+  { id: 6, n: "Deepak Gowda", r: "Gardener · Kochi", ini: "DG", color: "linear-gradient(135deg,#a78bfa,#7c3aed)", rate: "4.6" },
+];
+
+function StarRating() {
+  const [v, setV] = useState(0);
+  return (
+    <div style={{ display: "flex", gap: 4, fontSize: "1.6rem" }} role="radiogroup" aria-label="Rating">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <button key={i} type="button" aria-label={i + " star"} onClick={() => setV(i)}
+          style={{ color: i <= v ? "var(--accent)" : "var(--border)", lineHeight: 1 }}>★</button>
+      ))}
+    </div>
+  );
+}
+
+export default function CustomerDashboard() {
+  const { show } = useToast();
+  const [bookings, setBookings] = useState(initialBookings);
+  const [saved, setSaved] = useState(initialSaved);
+  const [q, setQ] = useState("");
+
+  const filtered = useMemo(
+    () => bookings.filter((b) => (b.svc + b.who + b.status).toLowerCase().includes(q.toLowerCase())),
+    [bookings, q]
+  );
+
+  const cancel = (id: number) => {
+    setBookings((rows) => rows.map((r) => (r.id === id ? { ...r, status: "Cancelled", kind: "danger", amt: "₹0" } : r)));
+    show("Booking cancelled");
+  };
+
+  const spendData = {
+    labels: ["Mar", "Apr", "May", "Jun", "Jul", "Aug"],
+    datasets: [{ label: "Spend", data: [4200, 3800, 9100, 5600, 7300, 8200], borderColor: PALETTE.teal, backgroundColor: "rgba(13,148,136,.12)", fill: true, tension: 0.38, borderWidth: 2.5, pointRadius: 0 }],
+  };
+  const catData = {
+    labels: ["Electrical", "Plumbing", "Cleaning", "Carpentry", "Caregiving"],
+    datasets: [{ data: [11, 7, 9, 6, 4], backgroundColor: [PALETTE.teal, PALETTE.blue, PALETTE.amber, PALETTE.green, PALETTE.purple], borderWidth: 0 }],
+  };
+
+  return (
+    <>
+      <Navbar />
+      <DashboardShell
+        who={{ initials: "AN", name: "Aarav Nair", role: { en: "Customer · Kochi", hi: "ग्राहक · कोच्चि" }, color: "linear-gradient(135deg,#2dd4bf,#0d9488)" }}
+        nav={nav}
+        extraNav={extraNav}
+        sideLabel={{ en: "Account", hi: "खाता" }}
+        subtitle={{ en: "Welcome back, Aarav — here's what's happening with your services.", hi: "वापसी पर स्वागत है, आरव — आपकी सेवाओं का सारांश।" }}
+        actions={<Link href="/booking" className="btn btn-primary hide-mobile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg> <T en="Book new service" hi="नई सेवा" /></Link>}
+      >
+        {/* OVERVIEW */}
+        <View name="overview">
+          <div className="kpi-grid">
+            {[
+              { ic: IcCal, cls: "", trend: "+1", val: "2", en: "Active bookings", hi: "सक्रिय बुकिंग" },
+              { ic: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5" /></svg>, cls: "success", trend: "+4", val: "37", en: "Completed services", hi: "पूर्ण सेवाएँ" },
+              { ic: IcCard, cls: "amber", trend: "+12%", val: "₹48,200", en: "Total spent", hi: "कुल खर्च" },
+              { ic: IcHeart, cls: "info", trend: "", val: "6", en: "Saved workers", hi: "सहेजे कार्यकर्ता" },
+            ].map((k) => (
+              <div className="card kpi" key={k.en}>
+                <div className="top"><span className={"icon-chip " + k.cls}>{k.ic}</span>{k.trend && <span className="trend up">{k.trend}</span>}</div>
+                <div className="val tnum">{k.val}</div><div className="lbl"><T en={k.en} hi={k.hi} /></div>
+              </div>
+            ))}
+          </div>
+          <div className="dash-grid two">
+            <div className="card panel">
+              <div className="panel-head"><h3><T en="Spending overview" hi="खर्च अवलोकन" /></h3><span className="pill pill-primary"><T en="Last 6 months" hi="पिछले 6 माह" /></span></div>
+              <div className="chart-wrap"><LineChart data={spendData} options={{ plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: PALETTE.grid }, beginAtZero: true } } }} /></div>
+            </div>
+            <div className="card panel">
+              <div className="panel-head"><h3><T en="Services by category" hi="श्रेणी अनुसार सेवाएँ" /></h3></div>
+              <div className="chart-wrap sm"><DoughnutChart data={catData} options={{ plugins: { legend: { position: "bottom", labels: { boxWidth: 12, padding: 12 } } } }} /></div>
+            </div>
+          </div>
+          <div className="card ai-card panel mt-3">
+            <div className="row-top"><span className="ai-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l2 5 5 .5-4 3.5 1.5 5L12 18l-4.5 3 1.5-5-4-3.5 5-.5z" /></svg> AI</span> <b><T en="Smart suggestion" hi="स्मार्ट सुझाव" /></b></div>
+            <p><T en="Summer is near — your AC hasn't been serviced in 11 months. Book an AC service now and save 15% with a cooperative early-bird slot." hi="गर्मी नज़दीक है — 11 महीने से आपकी AC सर्विस नहीं हुई। अभी बुक करें और 15% बचाएँ।" /></p>
+            <Link href="/booking" className="btn btn-primary btn-sm mt-2"><T en="Book AC service" hi="AC सर्विस बुक करें" /></Link>
+          </div>
+        </View>
+
+        {/* BOOKINGS */}
+        <View name="bookings">
+          <div className="card panel">
+            <div className="panel-head">
+              <h3><T en="My Bookings" hi="मेरी बुकिंग" /></h3>
+              <PanelSearch value={q} onChange={setQ} placeholder="Search bookings…" />
+            </div>
+            <div className="table-wrap">
+              <table className="data">
+                <thead><tr><th>Service</th><th>Professional</th><th>Date &amp; Time</th><th>Status</th><th>Amount</th><th>Action</th></tr></thead>
+                <tbody>
+                  {filtered.map((b) => (
+                    <tr key={b.id}>
+                      <td>{b.svc}</td>
+                      <td><div className="td-user"><span className="avatar" style={{ background: b.color }}>{b.ini}</span> {b.who}</div></td>
+                      <td>{b.when}</td>
+                      <td><StatusPill kind={b.kind}>{b.status}</StatusPill></td>
+                      <td>{b.amt}</td>
+                      <td>
+                        <div className="row-actions">
+                          <ActionButton toast="Rebooking started">Rebook</ActionButton>
+                          {(b.status === "Confirmed" || b.status === "In progress") && (
+                            <button className="btn btn-ghost btn-sm" onClick={() => cancel(b.id)}>Cancel</button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </View>
+
+        {/* PAYMENTS */}
+        <View name="payments">
+          <div className="dash-grid two">
+            <div className="card panel">
+              <div className="panel-head"><h3><T en="Payments & Invoices" hi="भुगतान व चालान" /></h3></div>
+              <div className="table-wrap">
+                <table className="data">
+                  <thead><tr><th>Invoice #</th><th>Service</th><th>Date</th><th>Amount</th><th>Status</th><th>Invoice</th></tr></thead>
+                  <tbody>
+                    {[
+                      { inv: "INV-20482", s: "AC Repair", d: "26 Aug 2026", a: "₹529", paid: false },
+                      { inv: "INV-20355", s: "Deep Cleaning", d: "18 Aug 2026", a: "₹699", paid: true },
+                      { inv: "INV-20218", s: "Carpentry — Door", d: "11 Aug 2026", a: "₹899", paid: true },
+                      { inv: "INV-20090", s: "Electrical Fitting", d: "02 Aug 2026", a: "₹449", paid: true },
+                    ].map((r) => (
+                      <tr key={r.inv}>
+                        <td>{r.inv}</td><td>{r.s}</td><td>{r.d}</td><td>{r.a}</td>
+                        <td>{r.paid ? <StatusPill kind="success">Paid</StatusPill> : <StatusPill kind="warning">Due</StatusPill>}</td>
+                        <td><ActionButton toast="Invoice downloaded">Download</ActionButton></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div>
+              <div className="card panel">
+                <div className="panel-head"><h3><T en="Cooperative wallet" hi="सहकारी वॉलेट" /></h3></div>
+                <div className="tnum" style={{ fontFamily: "var(--font-display)", fontSize: "2rem", fontWeight: 700 }}>₹1,250</div>
+                <p className="text-muted text-sm"><T en="Available balance" hi="उपलब्ध शेष" /></p>
+                <ActionButton className="btn btn-primary btn-sm mt-2 w-full" toast="Add money — UPI opened">Add money</ActionButton>
+              </div>
+              <div className="card panel mt-3">
+                <div className="panel-head"><h3><T en="Payment methods" hi="भुगतान के तरीके" /></h3></div>
+                <div className="summary-row"><span>UPI · aarav@okhdfc</span><span className="pill pill-success">Default</span></div>
+                <div className="summary-row"><span>HDFC •••• 4821</span><ActionButton toast="Card removed">Remove</ActionButton></div>
+                <ActionButton className="btn btn-ghost btn-sm mt-2 w-full" toast="Add a new payment method">+ Add method</ActionButton>
+              </div>
+            </div>
+          </div>
+        </View>
+
+        {/* SAVED */}
+        <View name="saved">
+          <div className="grid grid-3">
+            {saved.map((w) => (
+              <div className="card" key={w.id}>
+                <div className="row" style={{ gap: 12 }}>
+                  <span className="avatar" style={{ width: 52, height: 52, background: w.color }}>{w.ini}</span>
+                  <div>
+                    <b>{w.n}</b><div className="text-muted text-sm">{w.r}</div>
+                    <span className="rating">{StarFill} {w.rate}</span>
+                  </div>
+                </div>
+                <div className="row-actions mt-2" style={{ width: "100%" }}>
+                  <Link href="/booking" className="btn btn-primary btn-sm flex-1">Book</Link>
+                  <button className="btn btn-ghost btn-sm" onClick={() => { setSaved((s) => s.filter((x) => x.id !== w.id)); show("Removed from saved"); }}>Remove</button>
+                </div>
+              </div>
+            ))}
+            {saved.length === 0 && <p className="empty-state"><T en="No saved workers yet." hi="अभी कोई सहेजा कार्यकर्ता नहीं।" /></p>}
+          </div>
+        </View>
+
+        {/* RATINGS */}
+        <View name="ratings">
+          <div className="grid grid-2">
+            {[
+              { ini: "PK", color: "linear-gradient(135deg,#fbbf24,#f59e0b)", n: "Priya Kumari", s: "Deep Cleaning · 18 Aug" },
+              { ini: "SK", color: "linear-gradient(135deg,#34d399,#059669)", n: "Suresh Kumar", s: "Carpentry — Door · 11 Aug" },
+            ].map((r) => (
+              <form className="card panel" key={r.ini} onSubmit={(e) => { e.preventDefault(); show("Thanks for your rating!"); }}>
+                <div className="row" style={{ gap: 12 }}><span className="avatar" style={{ background: r.color }}>{r.ini}</span><div><b>{r.n}</b><div className="text-muted text-sm">{r.s}</div></div></div>
+                <div className="mt-2"><StarRating /></div>
+                <textarea className="textarea mt-2" placeholder="Share your experience…" />
+                <button className="btn btn-primary btn-sm mt-2" type="submit"><T en="Submit rating" hi="रेटिंग सबमिट करें" /></button>
+              </form>
+            ))}
+          </div>
+        </View>
+
+        {/* SUPPORT */}
+        <View name="support">
+          <div className="dash-grid two">
+            <form className="card panel" onSubmit={(e) => { e.preventDefault(); show("Support request sent — we'll reply within 2 hours."); }}>
+              <div className="panel-head"><h3><T en="Contact support" hi="सहायता से संपर्क करें" /></h3></div>
+              <div className="field mb-2"><label><T en="Subject" hi="विषय" /></label><input className="input" placeholder="How can we help?" /></div>
+              <div className="field mb-2"><label><T en="Related booking" hi="संबंधित बुकिंग" /></label>
+                <select className="select"><option>AC Repair — INV-20482</option><option>Deep Cleaning — INV-20355</option><option>Other</option></select>
+              </div>
+              <div className="field mb-2"><label><T en="Message" hi="संदेश" /></label><textarea className="textarea" placeholder="Describe your issue…" /></div>
+              <button className="btn btn-primary" type="submit"><T en="Send message" hi="संदेश भेजें" /></button>
+            </form>
+            <div className="card panel">
+              <div className="panel-head"><h3><T en="Frequently asked" hi="अक्सर पूछे जाने वाले" /></h3></div>
+              <details className="mb-2" style={{ cursor: "pointer" }}><summary className="fw-600"><T en="How do I cancel a booking?" hi="बुकिंग कैसे रद्द करें?" /></summary><p className="text-muted text-sm mt-1">Open My Bookings and tap Cancel. Free cancellation up to 2 hours before the slot.</p></details>
+              <div className="divider" />
+              <details className="mb-2" style={{ cursor: "pointer" }}><summary className="fw-600"><T en="Are workers verified?" hi="क्या कार्यकर्ता सत्यापित हैं?" /></summary><p className="text-muted text-sm mt-1">Every professional is Aadhaar-KYC&apos;d, police-verified and endorsed by their cooperative society.</p></details>
+              <div className="divider" />
+              <details style={{ cursor: "pointer" }}><summary className="fw-600"><T en="How are refunds handled?" hi="रिफंड कैसे होते हैं?" /></summary><p className="text-muted text-sm mt-1">Refunds return to your cooperative wallet or source account within 3–5 working days.</p></details>
+              <ActionButton className="btn btn-ghost btn-sm mt-3" toast="Connecting you to a live agent…">Chat with an agent</ActionButton>
+            </div>
+          </div>
+        </View>
+      </DashboardShell>
+    </>
+  );
+}
