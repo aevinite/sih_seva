@@ -15,10 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-        <link
-          rel="icon"
-          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><text y='20' font-size='20'>🛠️</text></svg>"
-        />
+        <meta name="theme-color" content="#7c5cff" />
         <script dangerouslySetInnerHTML={{ __html: noFlash }} />
       </head>
       <body suppressHydrationWarning>
