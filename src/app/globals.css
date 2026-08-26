@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 /* Map AeviWork design tokens into Tailwind's theme so utilities
@@ -722,3 +722,111 @@ input, select, textarea, .input, .select, .textarea { max-width: 100%; }
 .meter { height: 8px; border-radius: 99px; background: var(--muted); overflow: hidden; }
 .meter > span { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--primary), var(--accent)); }
 }
+
+/* ============================================================
+   MIDNIGHT FINTECH REDESIGN (light-first)
+   Electric violet + cyan · glassy chrome · neon-glow accents.
+   Unlayered so it overrides the ported component layer + utilities.
+   ============================================================ */
+:root {
+  --font-display: 'Space Grotesk', 'Noto Sans Devanagari', system-ui, sans-serif;
+  --font-body: 'Inter', 'Noto Sans Devanagari', system-ui, sans-serif;
+
+  --background: #f5f5fb;
+  --surface: #ffffff;
+  --card: #ffffff;
+  --muted: #edecf7;
+  --muted-foreground: #5a5876;
+  --foreground: #121020;
+  --border: #e5e3f1;
+
+  --ink: #0a0a14;
+  --ink-soft: #12121f;
+  --ink-foreground: #e9e8ff;
+
+  --primary: #7c5cff;
+  --primary-strong: #6a45f5;
+  --primary-soft: #ece7ff;
+  --primary-foreground: #ffffff;
+
+  --accent: #06b6d4;
+  --accent-soft: #d3f4fb;
+
+  --success: #10b981; --success-soft: #d1fae5;
+  --warning: #f59e0b; --warning-soft: #fef3c7;
+  --danger: #ef4444;  --danger-soft: #fee2e2;
+  --info: #3b82f6;    --info-soft: #dbeafe;
+
+  --ring: rgba(124, 92, 255, 0.40);
+  --shadow-sm: 0 1px 2px rgba(18,18,28,.06), 0 1px 3px rgba(18,18,28,.05);
+  --shadow-md: 0 12px 34px -14px rgba(76, 44, 240, 0.30);
+  --shadow-lg: 0 32px 74px -26px rgba(76, 44, 240, 0.40);
+  --shadow-glow: 0 0 54px -8px rgba(124, 92, 255, 0.62);
+
+  --radius-sm: 10px; --radius: 16px; --radius-lg: 26px; --radius-full: 999px;
+}
+[data-theme="dark"] {
+  --background: #07070f;
+  --surface: #0d0d1a;
+  --card: #101026;
+  --muted: #191934;
+  --muted-foreground: #9b99c6;
+  --foreground: #e9e8ff;
+  --border: #24244a;
+
+  --ink: #050509;
+  --ink-soft: #0c0c1a;
+  --ink-foreground: #e9e8ff;
+
+  --primary: #8b74ff;
+  --primary-strong: #7c5cff;
+  --primary-soft: #221b48;
+  --primary-foreground: #07070f;
+
+  --accent: #22d3ee;
+  --accent-soft: #0b2b33;
+
+  --success-soft: #0c2c1f; --warning-soft: #2e2410; --danger-soft: #2e1414; --info-soft: #10203c;
+  --ring: rgba(139, 116, 255, 0.46);
+  --shadow-md: 0 12px 34px -14px rgba(0,0,0,.62);
+  --shadow-lg: 0 32px 74px -26px rgba(0,0,0,.74);
+  --shadow-glow: 0 0 62px -8px rgba(139, 116, 255, 0.52);
+}
+
+/* headings tighter + bolder for the fintech look */
+h1, h2, h3, h4 { letter-spacing: -0.03em; }
+.gradient-text { background: linear-gradient(100deg, var(--primary) 10%, var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+/* Brand mark: violet→cyan with glow */
+.brand-mark { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; box-shadow: 0 0 30px -6px rgba(124,92,255,.7); }
+
+/* Glassy nav with violet hairline */
+.nav { background: color-mix(in srgb, var(--ink) 80%, transparent); backdrop-filter: blur(18px) saturate(1.2); border-bottom: 1px solid rgba(124,92,255,.20); }
+
+/* Primary button = gradient + neon glow */
+.btn-primary { background: linear-gradient(120deg, var(--primary), var(--primary-strong)); box-shadow: 0 10px 26px -10px rgba(124,92,255,.62); }
+.btn-primary:hover { background: linear-gradient(120deg, var(--primary-strong), var(--primary)); box-shadow: var(--shadow-glow); transform: translateY(-2px); }
+.btn-ghost:hover { border-color: var(--primary); color: var(--primary); box-shadow: 0 0 0 3px var(--ring); }
+
+/* Cards: bigger radius, violet-tinted hover, faint glass */
+.card { border-radius: var(--radius-lg); }
+.card-hover:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--primary) 55%, var(--border)); box-shadow: var(--shadow-md); }
+.icon-chip { border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent); }
+
+/* Hero ambient glow -> violet + cyan */
+.hero::before { background: radial-gradient(circle, rgba(124,92,255,.55), transparent 62%); }
+.hero::after  { background: radial-gradient(circle, rgba(34,211,238,.30), transparent 64%); }
+.hero .eyebrow { background: rgba(124,92,255,.18); color: #c9bcff; }
+.glass-card { background: rgba(255,255,255,.07); border-color: rgba(139,116,255,.26); backdrop-filter: blur(18px); }
+
+/* Bands recoloured to the new scheme */
+.stats-band::before { background: radial-gradient(circle at 80% -20%, rgba(124,92,255,.42), transparent 55%); }
+.cta-band { background: linear-gradient(120deg, var(--primary-strong), #4c1d95 55%, var(--ink)); }
+.cta-band::before { background: radial-gradient(circle, rgba(34,211,238,.35), transparent 60%); }
+
+/* Dashboard active nav gets a subtle glow */
+.side-nav a.active { box-shadow: 0 8px 20px -10px rgba(124,92,255,.6); }
+.page-head::before { background: radial-gradient(circle, rgba(124,92,255,.4), transparent 60%); }
+
+/* Marquee strip subtle brand tint */
+.strip { border-block: 1px solid rgba(124,92,255,.12); }

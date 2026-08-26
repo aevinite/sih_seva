@@ -21,14 +21,15 @@ ChartJS.register(
 ChartJS.defaults.font.family = "Inter, sans-serif";
 ChartJS.defaults.plugins.legend.labels.usePointStyle = true;
 
+// Midnight Fintech palette (names kept stable for existing dashboards)
 export const PALETTE = {
-  teal: "#0d9488",
-  amber: "#f59e0b",
-  blue: "#2563eb",
-  green: "#16a34a",
-  red: "#dc2626",
-  purple: "#7c3aed",
-  grid: "rgba(128,128,128,.15)",
+  teal: "#7c5cff",   // primary series -> electric violet
+  amber: "#22d3ee",  // secondary/forecast -> cyan
+  blue: "#3b82f6",
+  green: "#10b981",
+  red: "#ef4444",
+  purple: "#a78bfa",
+  grid: "rgba(130,130,170,.16)",
 };
 
 const base: ChartOptions = {
