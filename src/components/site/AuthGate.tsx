@@ -14,8 +14,11 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     if (ready && !session && !isLogin) router.replace("/login");
   }, [ready, session, isLogin, router]);
 
+  // login is public — always render it (also prerenders its content)
+  if (isLogin) return <>{children}</>;
+
   // brief branded loader while we read the session (avoids landing-page flash)
-  if (!ready || (!session && !isLogin)) {
+  if (!ready || !session) {
     return (
       <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", background: "var(--background)" }}>
         <span className="brand-mark" style={{ width: 60, height: 60, animation: "viewIn .5s ease" }}>
