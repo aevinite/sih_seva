@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { useLang, useTheme, T } from "@/lib/providers";
+import { useLang, useTheme, useAuth, T } from "@/lib/providers";
 
 const LINKS = [
   { href: "/", en: "Home", hi: "होम" },
@@ -32,8 +32,11 @@ export default function Navbar() {
   const pathname = usePathname();
   const { toggle: toggleLang, lang } = useLang();
   const { toggle: toggleTheme, theme } = useTheme();
+  const { session, logout } = useAuth();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  const signOut = () => { logout(); router.push("/login"); };
 
   return (
     <>
@@ -72,9 +75,15 @@ export default function Navbar() {
                 </svg>
               )}
             </button>
-            <Link href="/login" className="btn btn-primary btn-sm hide-mobile">
-              <T en="Sign In" hi="साइन इन" />
-            </Link>
+            {session ? (
+              <button className="btn btn-primary btn-sm hide-mobile" onClick={signOut}>
+                <T en="Sign out" hi="साइन आउट" />
+              </button>
+            ) : (
+              <Link href="/login" className="btn btn-primary btn-sm hide-mobile">
+                <T en="Sign In" hi="साइन इन" />
+              </Link>
+            )}
             <button className="icon-btn menu-btn hide-desktop" onClick={() => setOpen((o) => !o)} aria-label="Menu">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <path d="M3 6h18M3 12h18M3 18h18" />
@@ -89,9 +98,15 @@ export default function Navbar() {
             <T en={l.en} hi={l.hi} />
           </Link>
         ))}
-        <Link href="/login" className="btn btn-primary btn-block mt-2">
-          <T en="Sign In" hi="साइन इन" />
-        </Link>
+        {session ? (
+          <button className="btn btn-primary btn-block mt-2" onClick={signOut}>
+            <T en="Sign out" hi="साइन आउट" />
+          </button>
+        ) : (
+          <Link href="/login" className="btn btn-primary btn-block mt-2">
+            <T en="Sign In" hi="साइन इन" />
+          </Link>
+        )}
       </div>
     </>
   );

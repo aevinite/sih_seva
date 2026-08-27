@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { T, useT, useTheme, useLang, useToast } from "@/lib/providers";
+import { T, useT, useTheme, useLang, useToast, useAuth } from "@/lib/providers";
 
 type Role = "customer" | "worker" | "federation";
 
@@ -69,6 +69,25 @@ const ROLES: {
   },
 ];
 
+// Demo credentials (client-side, for hackathon access)
+const DEMO: Record<string, { pw: string; target: string; role: string; name: string }> = {
+  "customer@aeviwork.in": { pw: "demo1234", target: "/dashboard-customer", role: "customer", name: "Aarav Nair" },
+  "worker@aeviwork.in": { pw: "demo1234", target: "/dashboard-worker", role: "worker", name: "Ramesh Solanki" },
+  "admin@aeviwork.in": { pw: "demo1234", target: "/dashboard-admin", role: "federation", name: "Dinesh Kapoor" },
+  "superadmin@aeviwork.in": { pw: "aevinite@2026", target: "/aevinite", role: "superadmin", name: "Super Admin" },
+};
+const ROLE_EMAIL: Record<Role, string> = {
+  customer: "customer@aeviwork.in",
+  worker: "worker@aeviwork.in",
+  federation: "admin@aeviwork.in",
+};
+const DEMO_LIST = [
+  { label: "Customer", labelHi: "ग्राहक", em: "customer@aeviwork.in", pw: "demo1234" },
+  { label: "Worker", labelHi: "कार्यकर्ता", em: "worker@aeviwork.in", pw: "demo1234" },
+  { label: "Federation", labelHi: "फेडरेशन", em: "admin@aeviwork.in", pw: "demo1234" },
+  { label: "Super Admin", labelHi: "सुपर एडमिन", em: "superadmin@aeviwork.in", pw: "aevinite@2026" },
+];
+
 const brandPath = (
   <>
     <path d="M12 2 4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6z" />
@@ -78,18 +97,38 @@ const brandPath = (
 
 export default function LoginPage() {
   const [role, setRole] = useState<Role>("customer");
+  const [email, setEmail] = useState("customer@aeviwork.in");
+  const [password, setPassword] = useState("demo1234");
   const t = useT();
   const { toggle: toggleTheme, theme } = useTheme();
   const { toggle: toggleLang, lang } = useLang();
   const { show } = useToast();
+  const { login } = useAuth();
   const router = useRouter();
 
   const current = ROLES.find((r) => r.key === role)!;
 
+  const pickRole = (key: Role) => {
+    setRole(key);
+    const em = ROLE_EMAIL[key];
+    setEmail(em);
+    setPassword(DEMO[em].pw);
+  };
+
+  const attempt = (em: string, pw: string) => {
+    const acc = DEMO[em.trim().toLowerCase()];
+    if (acc && acc.pw === pw) {
+      login({ email: em.trim().toLowerCase(), role: acc.role, name: acc.name });
+      show(t("Signing you in…", "आपको साइन इन किया जा रहा है…"));
+      setTimeout(() => router.push(acc.target), 600);
+    } else {
+      show(t("Invalid credentials — use a demo account below", "अमान्य क्रेडेंशियल — नीचे डेमो खाता उपयोग करें"));
+    }
+  };
+
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    show(t("Signing you in…", "आपको साइन इन किया जा रहा है…"));
-    setTimeout(() => router.push(current.target), 700);
+    attempt(email, password);
   };
 
   return (
@@ -101,8 +140,8 @@ export default function LoginPage() {
   @media (min-width: 940px) { .auth { grid-template-columns: 1.05fr 1fr; } }
   .auth-brand { position: relative; overflow: hidden; background: var(--ink); color: var(--ink-foreground); padding: clamp(28px,5vw,56px); display: none; flex-direction: column; }
   @media (min-width: 940px) { .auth-brand { display: flex; } }
-  .auth-brand::before { content:""; position:absolute; top:-15%; right:-12%; width:520px; height:520px; border-radius:50%; background:radial-gradient(circle,rgba(13,148,136,.5),transparent 62%); filter:blur(20px); }
-  .auth-brand::after { content:""; position:absolute; bottom:-20%; left:-10%; width:420px; height:420px; border-radius:50%; background:radial-gradient(circle,rgba(245,158,11,.22),transparent 64%); filter:blur(18px); }
+  .auth-brand::before { content:""; position:absolute; top:-15%; right:-12%; width:520px; height:520px; border-radius:50%; background:radial-gradient(circle,rgba(124,92,255,.55),transparent 62%); filter:blur(20px); }
+  .auth-brand::after { content:""; position:absolute; bottom:-20%; left:-10%; width:420px; height:420px; border-radius:50%; background:radial-gradient(circle,rgba(34,211,238,.25),transparent 64%); filter:blur(18px); }
   .auth-brand > * { position: relative; }
   .auth-brand .head { display:flex; align-items:center; gap:11px; color:#fff; font-family:var(--font-display); font-weight:700; font-size:1.15rem; }
   .auth-brand .head small { display:block; font-family:var(--font-body); font-weight:500; font-size:.64rem; letter-spacing:.16em; text-transform:uppercase; color:rgba(255,255,255,.55); margin-top:-2px; }
@@ -110,7 +149,7 @@ export default function LoginPage() {
   .auth-brand p { color:rgba(233,245,241,.78); max-width:440px; margin-top:14px; }
   .auth-brand .points { display:grid; gap:14px; margin-top:28px; }
   .auth-brand .points li { display:flex; gap:12px; align-items:flex-start; list-style:none; }
-  .auth-brand .points .t { width:26px;height:26px;border-radius:50%;background:rgba(45,212,191,.18);color:#7ff0e0;display:grid;place-items:center;flex:none;margin-top:2px; }
+  .auth-brand .points .t { width:26px;height:26px;border-radius:50%;background:rgba(124,92,255,.22);color:#c9bcff;display:grid;place-items:center;flex:none;margin-top:2px; }
   .auth-brand .points svg { width:15px;height:15px; }
   .auth-brand .foot-note { margin-top:34px; padding-top:22px; border-top:1px solid rgba(255,255,255,.12); font-size:.82rem; color:rgba(233,245,241,.55); }
   .auth-form { padding: clamp(24px,5vw,52px); display:flex; flex-direction:column; justify-content:center; background:var(--background); }
@@ -138,6 +177,12 @@ export default function LoginPage() {
   .checkbox-row { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:.85rem; }
   .cbx { display:flex; align-items:center; gap:8px; cursor:pointer; }
   .cbx input { width:16px;height:16px; accent-color:var(--primary); }
+  .demo-creds { margin-top:18px; border:1px dashed color-mix(in srgb, var(--primary) 35%, var(--border)); border-radius:var(--radius); padding:12px; background:var(--muted); }
+  .demo-creds .dc-title { font-size:.78rem; font-weight:600; color:var(--muted-foreground); margin-bottom:6px; }
+  .dc-row { display:flex; justify-content:space-between; align-items:center; gap:10px; width:100%; text-align:left; padding:8px 10px; border-radius:10px; background:transparent; cursor:pointer; transition:.15s; }
+  .dc-row:hover { background:var(--surface); box-shadow:var(--shadow-sm); }
+  .dc-row .dc-role { font-weight:700; font-size:.8rem; }
+  .dc-row .dc-cred { color:var(--muted-foreground); font-size:.72rem; font-family:ui-monospace,Menlo,Consolas,monospace; }
 `,
         }}
       />
@@ -230,10 +275,10 @@ export default function LoginPage() {
               <div
                 key={r.key}
                 className={"role-tab" + (role === r.key ? " active" : "")}
-                onClick={() => setRole(r.key)}
+                onClick={() => pickRole(r.key)}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setRole(r.key)}
+                onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && pickRole(r.key)}
               >
                 <span className="ic">{r.icon}</span>
                 <b>
@@ -256,7 +301,7 @@ export default function LoginPage() {
                   <rect x="3" y="5" width="18" height="14" rx="2" />
                   <path d="m3 7 9 6 9-6" />
                 </svg>
-                <input className="input" type="text" placeholder="you@example.com" required />
+                <input className="input" type="text" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
             </div>
             <div className="field">
@@ -273,7 +318,7 @@ export default function LoginPage() {
                   <rect x="4" y="11" width="16" height="10" rx="2" />
                   <path d="M8 11V7a4 4 0 0 1 8 0v4" />
                 </svg>
-                <input className="input" type="password" placeholder="••••••••" required />
+                <input className="input" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
               </div>
             </div>
             <div className="checkbox-row">
@@ -316,6 +361,16 @@ export default function LoginPage() {
             </button>
           </div>
 
+          <div className="demo-creds">
+            <div className="dc-title">🔑 <T en="Demo credentials — tap a row to fill" hi="डेमो क्रेडेंशियल — भरने हेतु टैप करें" /></div>
+            {DEMO_LIST.map((d) => (
+              <button type="button" key={d.em} className="dc-row" onClick={() => { setEmail(d.em); setPassword(d.pw); }}>
+                <span className="dc-role">{lang === "hi" ? d.labelHi : d.label}</span>
+                <span className="dc-cred">{d.em} · {d.pw}</span>
+              </button>
+            ))}
+          </div>
+
           <p className="center mt-3 text-sm text-muted">
             <T en="New to AeviWork?" hi="AeviWork पर नए हैं?" />{" "}
             <Link href="/register" className="link">
@@ -329,14 +384,19 @@ export default function LoginPage() {
           <div className="divider-or" style={{ margin: "16px 0" }}>
             <T en="platform team" hi="प्लेटफ़ॉर्म टीम" />
           </div>
-          <Link href="/aevinite" className="btn btn-ghost w-full" style={{ width: "100%" }}>
+          <button
+            type="button"
+            className="btn btn-ghost w-full"
+            style={{ width: "100%" }}
+            onClick={() => attempt("superadmin@aeviwork.in", "aevinite@2026")}
+          >
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
               {brandPath}
             </svg>
             <span>
               <T en="Open Super Admin Console" hi="सुपर एडमिन कंसोल खोलें" />
             </span>
-          </Link>
+          </button>
         </div>
       </main>
     </div>

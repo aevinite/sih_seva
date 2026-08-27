@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "@/lib/providers";
+import AuthGate from "@/components/site/AuthGate";
 
 export const metadata: Metadata = {
   title: "AeviWork — Cooperative Gig Services Platform",
@@ -19,7 +20,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: noFlash }} />
       </head>
       <body suppressHydrationWarning>
-        <Providers>{children}</Providers>
+        <Providers>
+          <AuthGate>{children}</AuthGate>
+        </Providers>
       </body>
     </html>
   );

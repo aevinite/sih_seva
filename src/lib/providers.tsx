@@ -41,12 +41,22 @@ export function useToast() {
   return useContext(ToastContext);
 }
 
+/* ---------------- Auth (client-side demo session) ---------------- */
+export type Session = { email: string; role: string; name?: string } | null;
+type AuthCtx = { session: Session; ready: boolean; login: (s: NonNullable<Session>) => void; logout: () => void };
+const AuthContext = createContext<AuthCtx>({ session: null, ready: false, login: () => {}, logout: () => {} });
+export function useAuth() {
+  return useContext(AuthContext);
+}
+
 /* ---------------- Provider root ---------------- */
 export function Providers({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>("en");
   const [theme, setTheme] = useState<Theme>("light");
   const [toast, setToast] = useState<string | null>(null);
   const [toastVisible, setToastVisible] = useState(false);
+  const [session, setSession] = useState<Session>(null);
+  const [ready, setReady] = useState(false);
 
   // hydrate from what the no-flash script already applied / localStorage
   useEffect(() => {
@@ -56,6 +66,20 @@ export function Providers({ children }: { children: React.ReactNode }) {
     setLangState(l);
     document.documentElement.setAttribute("data-theme", t);
     document.documentElement.setAttribute("lang", l);
+    try {
+      const s = localStorage.getItem("aw-session");
+      if (s) setSession(JSON.parse(s));
+    } catch {}
+    setReady(true);
+  }, []);
+
+  const login = useCallback((s: NonNullable<Session>) => {
+    setSession(s);
+    try { localStorage.setItem("aw-session", JSON.stringify(s)); } catch {}
+  }, []);
+  const logout = useCallback(() => {
+    setSession(null);
+    try { localStorage.removeItem("aw-session"); } catch {}
   }, []);
 
   const toggleTheme = useCallback(() => {
@@ -82,6 +106,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
+    <AuthContext.Provider value={{ session, ready, login, logout }}>
     <LanguageContext.Provider value={{ lang, toggle: toggleLang, setLang }}>
       <ThemeContext.Provider value={{ theme, toggle: toggleTheme }}>
         <ToastContext.Provider value={{ show }}>
@@ -95,5 +120,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
         </ToastContext.Provider>
       </ThemeContext.Provider>
     </LanguageContext.Provider>
+    </AuthContext.Provider>
   );
 }
