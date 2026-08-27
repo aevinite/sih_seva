@@ -830,3 +830,9 @@ h1, h2, h3, h4 { letter-spacing: -0.03em; }
 
 /* Marquee strip subtle brand tint */
 .strip { border-block: 1px solid rgba(124,92,255,.12); }
+
+/* Safe-area top for the sticky nav on notched / edge-to-edge WebViews */
+.nav { height: auto; min-height: var(--nav-h); padding-top: env(safe-area-inset-top); }
+@media (max-width: 999.98px) {
+  .sidebar { top: calc(var(--nav-h) + env(safe-area-inset-top)); }
+}
