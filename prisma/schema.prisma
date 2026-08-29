@@ -1,0 +1,201 @@
+// AeviWork — Cooperative Gig Services Platform
+// Prisma schema (PostgreSQL, industry-grade shared backend)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  CUSTOMER
+  WORKER
+  FEDERATION
+  SUPERADMIN
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  SUSPENDED
+}
+
+enum CertStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  UPI
+  CARD
+  WALLET
+  COD
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum ClaimType {
+  ACCIDENT
+  HEALTH
+  WELFARE
+}
+
+enum ClaimStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  phone        String?
+  passwordHash String
+  name         String
+  role         Role     @default(CUSTOMER)
+  city         String?
+  createdAt    DateTime @default(now())
+
+  worker         WorkerProfile?
+  bookings       Booking[]       @relation("CustomerBookings")
+  ratingsGiven   Rating[]        @relation("RatingsByUser")
+}
+
+model Federation {
+  id        String    @id @default(cuid())
+  name      String
+  state     String
+  societies Society[]
+}
+
+model Society {
+  id           String        @id @default(cuid())
+  name         String
+  district     String
+  state        String
+  federation   Federation?   @relation(fields: [federationId], references: [id])
+  federationId String?
+  workers      WorkerProfile[]
+}
+
+model WorkerProfile {
+  id                 String             @id @default(cuid())
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId             String             @unique
+  skills             String[]
+  experienceYears    Int                @default(0)
+  bio                String?
+  society            Society?           @relation(fields: [societyId], references: [id])
+  societyId          String?
+  lat                Float?
+  lng                Float?
+  city               String?
+  ratePerVisit       Int                @default(299)
+  verificationStatus VerificationStatus @default(PENDING)
+  aadhaarLast4       String?
+  available          Boolean            @default(true)
+  ratingAvg          Float              @default(0)
+  ratingCount        Int                @default(0)
+  jobsDone           Int                @default(0)
+  insuranceActive    Boolean            @default(true)
+  welfareBalance     Int                @default(0)
+  createdAt          DateTime           @default(now())
+
+  certificates Certificate[]
+  bookings     Booking[]      @relation("WorkerBookings")
+  ratings      Rating[]       @relation("RatingsForWorker")
+  claims       WelfareClaim[]
+}
+
+model Certificate {
+  id        String     @id @default(cuid())
+  worker    WorkerProfile @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  workerId  String
+  name      String
+  issuer    String     @default("NCCT")
+  issuedOn  DateTime   @default(now())
+  status    CertStatus @default(PENDING)
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  customer    User          @relation("CustomerBookings", fields: [customerId], references: [id])
+  customerId  String
+  worker      WorkerProfile? @relation("WorkerBookings", fields: [workerId], references: [id])
+  workerId    String?
+  service     String
+  description String?
+  address     String?
+  city        String?
+  pincode     String?
+  lat         Float?
+  lng         Float?
+  scheduledAt DateTime?
+  emergency   Boolean       @default(false)
+  status      BookingStatus @default(PENDING)
+  amount      Int           @default(0)
+  priorityFee Int           @default(0)
+  gst         Int           @default(0)
+  total       Int           @default(0)
+  createdAt   DateTime      @default(now())
+
+  payment Payment?
+  rating  Rating?
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  booking     Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId   String        @unique
+  method      PaymentMethod @default(UPI)
+  status      PaymentStatus @default(PENDING)
+  amount      Int
+  provider    String        @default("simulated")
+  providerRef String?
+  invoiceNo   String        @unique
+  createdAt   DateTime      @default(now())
+}
+
+model Rating {
+  id        String        @id @default(cuid())
+  booking   Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId String        @unique
+  byUser    User          @relation("RatingsByUser", fields: [byUserId], references: [id])
+  byUserId  String
+  worker    WorkerProfile @relation("RatingsForWorker", fields: [workerId], references: [id])
+  workerId  String
+  stars     Int
+  comment   String?
+  createdAt DateTime      @default(now())
+}
+
+model WelfareClaim {
+  id        String      @id @default(cuid())
+  worker    WorkerProfile @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  workerId  String
+  type      ClaimType
+  amount    Int
+  reason    String?
+  status    ClaimStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+}

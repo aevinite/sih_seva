@@ -36,7 +36,7 @@ export default function Navbar() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
-  const signOut = () => { logout(); router.push("/login"); };
+  const signOut = async () => { await logout(); router.push("/login"); };
 
   return (
     <>

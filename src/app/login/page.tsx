@@ -115,14 +115,19 @@ export default function LoginPage() {
     setPassword(DEMO[em].pw);
   };
 
-  const attempt = (em: string, pw: string) => {
-    const acc = DEMO[em.trim().toLowerCase()];
-    if (acc && acc.pw === pw) {
-      login({ email: em.trim().toLowerCase(), role: acc.role, name: acc.name });
-      show(t("Signing you in…", "आपको साइन इन किया जा रहा है…"));
-      setTimeout(() => router.push(acc.target), 600);
+  const targetFor = (role: string) =>
+    role === "worker" ? "/dashboard-worker"
+    : role === "federation" ? "/dashboard-admin"
+    : role === "superadmin" ? "/aevinite"
+    : "/dashboard-customer";
+
+  const attempt = async (em: string, pw: string) => {
+    show(t("Signing you in…", "आपको साइन इन किया जा रहा है…"));
+    const res = await login(em.trim().toLowerCase(), pw);
+    if (res.ok && res.user) {
+      router.push(targetFor(res.user.role));
     } else {
-      show(t("Invalid credentials — use a demo account below", "अमान्य क्रेडेंशियल — नीचे डेमो खाता उपयोग करें"));
+      show(res.error || t("Invalid credentials — use a demo account below", "अमान्य क्रेडेंशियल — नीचे डेमो खाता उपयोग करें"));
     }
   };
 

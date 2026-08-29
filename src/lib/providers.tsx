@@ -41,10 +41,20 @@ export function useToast() {
   return useContext(ToastContext);
 }
 
-/* ---------------- Auth (client-side demo session) ---------------- */
-export type Session = { email: string; role: string; name?: string } | null;
-type AuthCtx = { session: Session; ready: boolean; login: (s: NonNullable<Session>) => void; logout: () => void };
-const AuthContext = createContext<AuthCtx>({ session: null, ready: false, login: () => {}, logout: () => {} });
+/* ---------------- Auth (real server session) ---------------- */
+export type Session = { userId: string; email: string; role: string; name?: string } | null;
+type AuthResult = { ok: boolean; error?: string; user?: NonNullable<Session> };
+type AuthCtx = {
+  session: Session;
+  ready: boolean;
+  login: (email: string, password: string) => Promise<AuthResult>;
+  register: (payload: Record<string, unknown>) => Promise<AuthResult>;
+  logout: () => Promise<void>;
+};
+const AuthContext = createContext<AuthCtx>({
+  session: null, ready: false,
+  login: async () => ({ ok: false }), register: async () => ({ ok: false }), logout: async () => {},
+});
 export function useAuth() {
   return useContext(AuthContext);
 }
@@ -66,20 +76,35 @@ export function Providers({ children }: { children: React.ReactNode }) {
     setLangState(l);
     document.documentElement.setAttribute("data-theme", t);
     document.documentElement.setAttribute("lang", l);
-    try {
-      const s = localStorage.getItem("aw-session");
-      if (s) setSession(JSON.parse(s));
-    } catch {}
-    setReady(true);
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/me", { cache: "no-store" });
+        const j = await res.json();
+        setSession(j.user || null);
+      } catch { setSession(null); }
+      setReady(true);
+    })();
   }, []);
 
-  const login = useCallback((s: NonNullable<Session>) => {
-    setSession(s);
-    try { localStorage.setItem("aw-session", JSON.stringify(s)); } catch {}
+  const login = useCallback(async (email: string, password: string): Promise<AuthResult> => {
+    const res = await fetch("/api/auth/login", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }),
+    });
+    const j = await res.json();
+    if (res.ok && j.user) { setSession(j.user); return { ok: true, user: j.user }; }
+    return { ok: false, error: j.error || "Login failed" };
   }, []);
-  const logout = useCallback(() => {
+  const register = useCallback(async (payload: Record<string, unknown>): Promise<AuthResult> => {
+    const res = await fetch("/api/auth/register", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
+    });
+    const j = await res.json();
+    if (res.ok && j.user) { setSession(j.user); return { ok: true, user: j.user }; }
+    return { ok: false, error: j.error || "Registration failed" };
+  }, []);
+  const logout = useCallback(async () => {
+    try { await fetch("/api/auth/logout", { method: "POST" }); } catch {}
     setSession(null);
-    try { localStorage.removeItem("aw-session"); } catch {}
   }, []);
 
   const toggleTheme = useCallback(() => {
@@ -106,7 +131,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ session, ready, login, logout }}>
+    <AuthContext.Provider value={{ session, ready, login, register, logout }}>
     <LanguageContext.Provider value={{ lang, toggle: toggleLang, setLang }}>
       <ThemeContext.Provider value={{ theme, toggle: toggleTheme }}>
         <ToastContext.Provider value={{ show }}>
