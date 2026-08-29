@@ -2,7 +2,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { useLang, useTheme, useAuth, T } from "@/lib/providers";
+import { useTheme, useAuth, T } from "@/lib/providers";
+import LangDropdown from "./LangDropdown";
 
 const LINKS = [
   { href: "/", en: "Home", hi: "होम" },
@@ -30,7 +31,6 @@ export function BrandMark({ className = "brand-mark" }: { className?: string }) 
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { toggle: toggleLang, lang } = useLang();
   const { toggle: toggleTheme, theme } = useTheme();
   const { session, logout } = useAuth();
   const router = useRouter();
@@ -56,13 +56,7 @@ export default function Navbar() {
             ))}
           </div>
           <div className="nav-actions">
-            <button className="lang-toggle" onClick={toggleLang} aria-label="Switch language">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20" />
-              </svg>
-              <span>{lang === "en" ? "हिं" : "EN"}</span>
-            </button>
+            <LangDropdown />
             <button className="icon-btn" onClick={toggleTheme} aria-label="Toggle theme">
               {theme === "dark" ? (
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -76,7 +70,8 @@ export default function Navbar() {
               )}
             </button>
             {session ? (
-              <button className="btn btn-primary btn-sm hide-mobile" onClick={signOut}>
+              <button className="btn btn-ink btn-sm hide-mobile" onClick={signOut}>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg>
                 <T en="Sign out" hi="साइन आउट" />
               </button>
             ) : (

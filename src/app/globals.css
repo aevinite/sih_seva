@@ -831,6 +831,24 @@ h1, h2, h3, h4 { letter-spacing: -0.03em; }
 /* Marquee strip subtle brand tint */
 .strip { border-block: 1px solid rgba(124,92,255,.12); }
 
+/* ============================================================
+   Google Translate integration (all Indian languages)
+   ============================================================ */
+.goog-te-banner-frame, .skiptranslate > iframe { display: none !important; }
+body { top: 0 !important; }
+#google_translate_element { position: fixed; left: -9999px; top: 0; width: 1px; height: 1px; overflow: hidden; z-index: -1; }
+.goog-te-gadget { font-size: 0 !important; }
+/* header language selector */
+.lang-select {
+  height: 40px; padding: 0 12px; border-radius: var(--radius-full);
+  background: rgba(255,255,255,.08); color: #fff; border: 1px solid rgba(255,255,255,.16);
+  font-weight: 600; font-size: .85rem; cursor: pointer; max-width: 150px;
+  transition: background .15s;
+}
+.lang-select:hover { background: rgba(255,255,255,.16); }
+.lang-select.light { background: var(--surface); color: var(--foreground); border-color: var(--border); }
+.lang-select option { color: #111; }
+
 /* Safe-area top for the sticky nav on notched / edge-to-edge WebViews.
    .wrap needs min-height (height:100% collapses against the auto-height nav,
    which left the content pinned to the top / "going upwards"). */

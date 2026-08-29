@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "@/lib/providers";
 import AuthGate from "@/components/site/AuthGate";
+import GoogleTranslate from "@/components/site/GoogleTranslate";
 
 export const metadata: Metadata = {
   title: "AeviWork — Cooperative Gig Services Platform",
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>
           <AuthGate>{children}</AuthGate>
         </Providers>
+        <GoogleTranslate />
       </body>
     </html>
   );

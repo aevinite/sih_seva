@@ -3,6 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { T, useT, useTheme, useLang, useToast, useAuth } from "@/lib/providers";
+import LangDropdown from "@/components/site/LangDropdown";
 
 type Role = "customer" | "worker" | "federation";
 
@@ -101,7 +102,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("demo1234");
   const t = useT();
   const { toggle: toggleTheme, theme } = useTheme();
-  const { toggle: toggleLang, lang } = useLang();
+  const { lang } = useLang();
   const { show } = useToast();
   const { login } = useAuth();
   const router = useRouter();
@@ -247,9 +248,7 @@ export default function LoginPage() {
               <span style={{ color: "var(--foreground)" }}>AeviWork</span>
             </Link>
             <div className="row" style={{ gap: 8 }}>
-              <button className="chip" onClick={toggleLang}>
-                <span>{lang === "en" ? "हिं" : "EN"}</span>
-              </button>
+              <LangDropdown light />
               <button className="chip" onClick={toggleTheme} aria-label="Theme">
                 <span style={{ display: "inline-flex", width: 16, height: 16 }}>
                   {theme === "dark" ? (
