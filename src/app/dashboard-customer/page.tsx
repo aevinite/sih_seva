@@ -11,7 +11,7 @@ import {
   type NavItem,
   type PillKind,
 } from "@/components/dash/Dashboard";
-import { T, useToast } from "@/lib/providers";
+import { T, useT, useToast } from "@/lib/providers";
 
 /* Service categories shown to the customer (no graphs in this panel) */
 const CATEGORIES = [
@@ -102,10 +102,13 @@ function StarRating() {
 
 export default function CustomerDashboard() {
   const { show } = useToast();
+  const t = useT();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [workers, setWorkers] = useState<WorkerCard[]>([]);
   const [saved, setSaved] = useState(initialSaved);
   const [q, setQ] = useState("");
+  const [wq, setWq] = useState("");
+  const [cat, setCat] = useState("All");
 
   useEffect(() => {
     fetch("/api/bookings")
@@ -140,9 +143,10 @@ export default function CustomerDashboard() {
   };
 
   const upcoming = bookings.filter((b) => ["Confirmed", "In progress", "Assigned", "Pending"].includes(b.status));
-  const activeCount = upcoming.length;
-  const completedCount = bookings.filter((b) => b.status === "Completed").length;
-  const spent = bookings.filter((b) => b.status === "Completed").reduce((a, b) => a + (parseInt(b.amt.replace(/[^0-9]/g, "")) || 0), 0);
+
+  const marketWorkers = workers.filter(
+    (w) => (cat === "All" || w.skill === cat) && (w.name + " " + w.skill + " " + (w.society || "")).toLowerCase().includes(wq.toLowerCase())
+  );
 
   return (
     <>
@@ -157,31 +161,46 @@ export default function CustomerDashboard() {
       >
         {/* OVERVIEW */}
         <View name="overview">
-          <div className="kpi-grid">
-            {[
-              { ic: IcCal, cls: "", trend: "", val: String(activeCount), en: "Active bookings", hi: "सक्रिय बुकिंग" },
-              { ic: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5" /></svg>, cls: "success", trend: "", val: String(completedCount), en: "Completed services", hi: "पूर्ण सेवाएँ" },
-              { ic: IcCard, cls: "amber", trend: "", val: "₹" + spent.toLocaleString("en-IN"), en: "Total spent", hi: "कुल खर्च" },
-              { ic: IcHeart, cls: "info", trend: "", val: String(saved.length), en: "Saved workers", hi: "सहेजे कार्यकर्ता" },
-            ].map((k) => (
-              <div className="card kpi" key={k.en}>
-                <div className="top"><span className={"icon-chip " + k.cls}>{k.ic}</span>{k.trend && <span className="trend up">{k.trend}</span>}</div>
-                <div className="val tnum">{k.val}</div><div className="lbl"><T en={k.en} hi={k.hi} /></div>
-              </div>
-            ))}
-          </div>
-          {/* Book by category — the customer's primary action */}
-          <div className="card panel mt-1">
+          {/* Marketplace — search + categories + all workers by specialty */}
+          <div className="card panel">
             <div className="panel-head">
-              <h3><T en="Book a service" hi="सेवा बुक करें" /></h3>
-              <Link href="/services" className="link"><T en="View all →" hi="सभी देखें →" /></Link>
+              <h3><T en="Find & book a verified worker" hi="सत्यापित कार्यकर्ता खोजें व बुक करें" /></h3>
+              <Link href="/services" className="link"><T en="Full directory →" hi="पूरी निर्देशिका →" /></Link>
             </div>
-            <div className="grid grid-4">
+            <div className="panel-search" style={{ width: "100%", maxWidth: "none", marginBottom: 14 }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m21 21-4-4" /></svg>
+              <input className="input" value={wq} onChange={(e) => setWq(e.target.value)} placeholder={t("Search by specialty or name — e.g. Electrician, Ramesh…", "विशेषता या नाम से खोजें — जैसे इलेक्ट्रीशियन, रमेश…")} />
+            </div>
+            <div className="chip-select" style={{ marginBottom: 18 }}>
+              <span className={"chip" + (cat === "All" ? " active" : "")} onClick={() => setCat("All")}><T en="All" hi="सभी" /></span>
               {CATEGORIES.map((c) => (
-                <Link key={c.en} href="/booking" className="card card-hover svc-card">
-                  <div className="top"><span className={"icon-chip " + c.cls} style={{ fontSize: "1.3rem" }}>{c.emoji}</span><span className="rate">{c.rate}</span></div>
-                  <div><h3 style={{ fontSize: "1.02rem" }}><T en={c.en} hi={c.hi} /></h3><span className="count"><T en="Book now" hi="अभी बुक करें" /></span></div>
-                </Link>
+                <span key={c.en} className={"chip" + (cat === c.en ? " active" : "")} onClick={() => setCat(c.en)}>{c.emoji} <T en={c.en} hi={c.hi} /></span>
+              ))}
+            </div>
+            {marketWorkers.length === 0 && <p className="empty-state"><T en="No workers match — try another specialty or search." hi="कोई कार्यकर्ता मेल नहीं खाता — दूसरी विशेषता आज़माएँ।" /></p>}
+            <div className="grid grid-3">
+              {marketWorkers.map((w) => (
+                <div className="card worker-card" key={w.id} style={{ padding: 0 }}>
+                  <div className="body">
+                    <div className="head">
+                      <span className="avatar" style={{ background: gradFor(w.name) }}>{iniOf(w.name)}</span>
+                      <div className="flex-1">
+                        <h3 style={{ fontSize: "1rem" }}>{w.name}</h3>
+                        <span className="role">{w.skill}{w.society ? " · " + w.society : ""}</span>
+                      </div>
+                      <span className="rating"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l2.5 6.5L21 9l-5 4.5L17.5 20 12 16.5 6.5 20 8 13.5 3 9l6.5-.5z" /></svg> {w.rating > 0 ? w.rating : "New"}</span>
+                    </div>
+                    <div className="worker-meta">
+                      <span className="m"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 21s-7-4.5-7-11a7 7 0 0 1 14 0c0 6.5-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></svg> {w.distanceKm != null ? w.distanceKm + " km" : "Nearby"}</span>
+                      <span className="m"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5" /></svg> {w.jobs} jobs</span>
+                      <span className="verified"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6L9 17l-5-5" /></svg> <T en="Verified" hi="सत्यापित" /></span>
+                    </div>
+                  </div>
+                  <div className="foot">
+                    <span className="price"><span className="text-muted text-sm"><T en="From " hi="से " /></span><b>₹{w.rate}</b></span>
+                    <Link href="/booking" className="btn btn-primary btn-sm"><T en="Book" hi="बुक करें" /></Link>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
@@ -204,43 +223,6 @@ export default function CustomerDashboard() {
               <span className="icon-chip success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></span>
               <div><b><T en="Get support" hi="सहायता पाएँ" /></b><div className="text-muted text-sm"><T en="24×7 helpline" hi="24×7 हेल्पलाइन" /></div></div>
             </button>
-          </div>
-
-          {/* Available workers — names + full details from the database */}
-          <div className="card panel mt-3">
-            <div className="panel-head">
-              <h3><T en="Available workers near you" hi="आपके पास उपलब्ध कार्यकर्ता" /></h3>
-              <Link href="/services" className="link"><T en="View all →" hi="सभी देखें →" /></Link>
-            </div>
-            {workers.length === 0 && <p className="empty-state"><T en="Finding verified workers near you…" hi="आपके पास सत्यापित कार्यकर्ता खोजे जा रहे…" /></p>}
-            <div className="grid grid-3">
-              {workers.slice(0, 6).map((w) => (
-                <div className="card worker-card" key={w.id} style={{ padding: 0 }}>
-                  <div className="body">
-                    <div className="head">
-                      <span className="avatar" style={{ background: gradFor(w.name) }}>{iniOf(w.name)}</span>
-                      <div className="flex-1">
-                        <h3 style={{ fontSize: "1rem" }}>{w.name}</h3>
-                        <span className="role">{w.skill}{w.society ? " · " + w.society : ""}</span>
-                      </div>
-                      <span className="rating">
-                        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l2.5 6.5L21 9l-5 4.5L17.5 20 12 16.5 6.5 20 8 13.5 3 9l6.5-.5z" /></svg>
-                        {w.rating > 0 ? w.rating : "New"}
-                      </span>
-                    </div>
-                    <div className="worker-meta">
-                      <span className="m"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 21s-7-4.5-7-11a7 7 0 0 1 14 0c0 6.5-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></svg> {w.distanceKm != null ? w.distanceKm + " km" : "Nearby"}</span>
-                      <span className="m"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5" /></svg> {w.jobs} jobs</span>
-                      <span className="verified"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6L9 17l-5-5" /></svg> <T en="Verified" hi="सत्यापित" /></span>
-                    </div>
-                  </div>
-                  <div className="foot">
-                    <span className="price"><span className="text-muted text-sm"><T en="From " hi="से " /></span><b>₹{w.rate}</b></span>
-                    <Link href="/booking" className="btn btn-primary btn-sm"><T en="Book" hi="बुक करें" /></Link>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* Active bookings + Offers (no graphs) */}
