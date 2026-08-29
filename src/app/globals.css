@@ -838,16 +838,33 @@ h1, h2, h3, h4 { letter-spacing: -0.03em; }
 body { top: 0 !important; }
 #google_translate_element { position: fixed; left: -9999px; top: 0; width: 1px; height: 1px; overflow: hidden; z-index: -1; }
 .goog-te-gadget { font-size: 0 !important; }
-/* header language selector */
+/* header language selector — custom, theme-matched dropdown */
+.lang-dd { position: relative; }
 .lang-select {
+  display: inline-flex; align-items: center; gap: 7px;
   height: 40px; padding: 0 12px; border-radius: var(--radius-full);
   background: rgba(255,255,255,.08); color: #fff; border: 1px solid rgba(255,255,255,.16);
-  font-weight: 600; font-size: .85rem; cursor: pointer; max-width: 150px;
-  transition: background .15s;
+  font-weight: 600; font-size: .85rem; cursor: pointer; transition: background .15s;
 }
 .lang-select:hover { background: rgba(255,255,255,.16); }
 .lang-select.light { background: var(--surface); color: var(--foreground); border-color: var(--border); }
-.lang-select option { color: #111; }
+.lang-current { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lang-caret { transition: transform .18s ease; opacity: .75; }
+.lang-caret.up { transform: rotate(180deg); }
+.lang-menu {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 60;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow-lg); padding: 6px; min-width: 200px; max-height: 340px; overflow-y: auto;
+  animation: viewIn .16s ease;
+}
+.lang-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;
+  text-align: left; padding: 9px 12px; border-radius: 10px; background: transparent; color: var(--foreground);
+  font-size: .92rem; cursor: pointer; white-space: nowrap;
+}
+.lang-item:hover { background: var(--muted); }
+.lang-item.active { background: var(--primary-soft); color: var(--primary-strong); font-weight: 600; }
+.lang-item .tick { width: 15px; height: 15px; color: var(--primary-strong); flex: none; }
 
 /* Safe-area top for the sticky nav on notched / edge-to-edge WebViews.
    .wrap needs min-height (height:100% collapses against the auto-height nav,
