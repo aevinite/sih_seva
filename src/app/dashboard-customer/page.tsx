@@ -11,8 +11,19 @@ import {
   type NavItem,
   type PillKind,
 } from "@/components/dash/Dashboard";
-import { LineChart, DoughnutChart, PALETTE } from "@/components/charts/Charts";
 import { T, useToast } from "@/lib/providers";
+
+/* Service categories shown to the customer (no graphs in this panel) */
+const CATEGORIES = [
+  { emoji: "⚡", cls: "", en: "Electrician", hi: "इलेक्ट्रीशियन", rate: "₹299+" },
+  { emoji: "🔧", cls: "info", en: "Plumber", hi: "प्लंबर", rate: "₹249+" },
+  { emoji: "🪚", cls: "amber", en: "Carpenter", hi: "बढ़ई", rate: "₹399+" },
+  { emoji: "🎨", cls: "success", en: "Painter", hi: "पेंटर", rate: "₹499+" },
+  { emoji: "🧹", cls: "", en: "Cleaner", hi: "सफाईकर्मी", rate: "₹199+" },
+  { emoji: "👶", cls: "amber", en: "Caregiver", hi: "देखभालकर्ता", rate: "₹599+" },
+  { emoji: "🚗", cls: "info", en: "Driver", hi: "ड्राइवर", rate: "₹349+" },
+  { emoji: "🌿", cls: "success", en: "Gardener", hi: "माली", rate: "₹299+" },
+];
 
 /* ---------- icons ---------- */
 const IcGrid = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="9" /><rect x="14" y="3" width="7" height="5" /><rect x="14" y="12" width="7" height="9" /><rect x="3" y="16" width="7" height="5" /></svg>;
@@ -85,14 +96,7 @@ export default function CustomerDashboard() {
     show("Booking cancelled");
   };
 
-  const spendData = {
-    labels: ["Mar", "Apr", "May", "Jun", "Jul", "Aug"],
-    datasets: [{ label: "Spend", data: [4200, 3800, 9100, 5600, 7300, 8200], borderColor: PALETTE.teal, backgroundColor: "rgba(13,148,136,.12)", fill: true, tension: 0.38, borderWidth: 2.5, pointRadius: 0 }],
-  };
-  const catData = {
-    labels: ["Electrical", "Plumbing", "Cleaning", "Carpentry", "Caregiving"],
-    datasets: [{ data: [11, 7, 9, 6, 4], backgroundColor: [PALETTE.teal, PALETTE.blue, PALETTE.amber, PALETTE.green, PALETTE.purple], borderWidth: 0 }],
-  };
+  const upcoming = bookings.filter((b) => b.status === "Confirmed" || b.status === "In progress");
 
   return (
     <>
@@ -120,20 +124,67 @@ export default function CustomerDashboard() {
               </div>
             ))}
           </div>
-          <div className="dash-grid two">
-            <div className="card panel">
-              <div className="panel-head"><h3><T en="Spending overview" hi="खर्च अवलोकन" /></h3><span className="pill pill-primary"><T en="Last 6 months" hi="पिछले 6 माह" /></span></div>
-              <div className="chart-wrap"><LineChart data={spendData} options={{ plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: PALETTE.grid }, beginAtZero: true } } }} /></div>
+          {/* Book by category — the customer's primary action */}
+          <div className="card panel mt-1">
+            <div className="panel-head">
+              <h3><T en="Book a service" hi="सेवा बुक करें" /></h3>
+              <Link href="/services" className="link"><T en="View all →" hi="सभी देखें →" /></Link>
             </div>
-            <div className="card panel">
-              <div className="panel-head"><h3><T en="Services by category" hi="श्रेणी अनुसार सेवाएँ" /></h3></div>
-              <div className="chart-wrap sm"><DoughnutChart data={catData} options={{ plugins: { legend: { position: "bottom", labels: { boxWidth: 12, padding: 12 } } } }} /></div>
+            <div className="grid grid-4">
+              {CATEGORIES.map((c) => (
+                <Link key={c.en} href="/booking" className="card card-hover svc-card">
+                  <div className="top"><span className={"icon-chip " + c.cls} style={{ fontSize: "1.3rem" }}>{c.emoji}</span><span className="rate">{c.rate}</span></div>
+                  <div><h3 style={{ fontSize: "1.02rem" }}><T en={c.en} hi={c.hi} /></h3><span className="count"><T en="Book now" hi="अभी बुक करें" /></span></div>
+                </Link>
+              ))}
             </div>
           </div>
-          <div className="card ai-card panel mt-3">
-            <div className="row-top"><span className="ai-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l2 5 5 .5-4 3.5 1.5 5L12 18l-4.5 3 1.5-5-4-3.5 5-.5z" /></svg> AI</span> <b><T en="Smart suggestion" hi="स्मार्ट सुझाव" /></b></div>
-            <p><T en="Summer is near — your AC hasn't been serviced in 11 months. Book an AC service now and save 15% with a cooperative early-bird slot." hi="गर्मी नज़दीक है — 11 महीने से आपकी AC सर्विस नहीं हुई। अभी बुक करें और 15% बचाएँ।" /></p>
-            <Link href="/booking" className="btn btn-primary btn-sm mt-2"><T en="Book AC service" hi="AC सर्विस बुक करें" /></Link>
+
+          {/* Quick actions */}
+          <div className="grid grid-4 mt-3">
+            <Link href="/booking" className="card card-hover" style={{ display: "flex", gap: 12, alignItems: "center" }}>
+              <span className="icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg></span>
+              <div><b><T en="Book a service" hi="सेवा बुक करें" /></b><div className="text-muted text-sm"><T en="Schedule a pro" hi="पेशेवर शेड्यूल करें" /></div></div>
+            </Link>
+            <Link href="/booking" className="card card-hover" style={{ display: "flex", gap: 12, alignItems: "center" }}>
+              <span className="icon-chip amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a10 10 0 1 0 10 10" /><path d="M12 6v6l4 2" /></svg></span>
+              <div><b><T en="Emergency help" hi="आपातकालीन मदद" /></b><div className="text-muted text-sm"><T en="Under 30 min" hi="30 मिनट में" /></div></div>
+            </Link>
+            <Link href="/services" className="card card-hover" style={{ display: "flex", gap: 12, alignItems: "center" }}>
+              <span className="icon-chip info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 21s-7-4.5-7-11a7 7 0 0 1 14 0c0 6.5-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></svg></span>
+              <div><b><T en="Browse workers" hi="कार्यकर्ता देखें" /></b><div className="text-muted text-sm"><T en="Near you" hi="आपके पास" /></div></div>
+            </Link>
+            <button className="card card-hover" style={{ display: "flex", gap: 12, alignItems: "center", textAlign: "left" }} onClick={() => show("Support: 1800-11-SAHKAR · we reply within 2 hours")}>
+              <span className="icon-chip success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></span>
+              <div><b><T en="Get support" hi="सहायता पाएँ" /></b><div className="text-muted text-sm"><T en="24×7 helpline" hi="24×7 हेल्पलाइन" /></div></div>
+            </button>
+          </div>
+
+          {/* Active bookings + Offers (no graphs) */}
+          <div className="dash-grid two mt-3">
+            <div className="card panel">
+              <div className="panel-head"><h3><T en="Your active bookings" hi="आपकी सक्रिय बुकिंग" /></h3></div>
+              {upcoming.length === 0 && <p className="empty-state"><T en="No active bookings. Book a service above." hi="कोई सक्रिय बुकिंग नहीं। ऊपर से सेवा बुक करें।" /></p>}
+              {upcoming.map((b) => (
+                <div key={b.id} className="summary-row" style={{ alignItems: "center" }}>
+                  <div className="td-user"><span className="avatar" style={{ background: b.color }}>{b.ini}</span><div><b>{b.svc}</b><div className="text-muted text-xs">{b.who} · {b.when}</div></div></div>
+                  <StatusPill kind={b.kind}>{b.status}</StatusPill>
+                </div>
+              ))}
+            </div>
+            <div className="card panel">
+              <div className="panel-head"><h3><T en="Offers & benefits" hi="ऑफ़र व लाभ" /></h3></div>
+              <ul className="check-list" style={{ marginTop: 0 }}>
+                {[
+                  { en: "10% off your first cooperative booking", hi: "पहली सहकारी बुकिंग पर 10% छूट" },
+                  { en: "Every professional is ₹5 lakh insured", hi: "प्रत्येक पेशेवर ₹5 लाख बीमित" },
+                  { en: "Free rebooking within 7 days", hi: "7 दिनों में मुफ़्त री-बुकिंग" },
+                  { en: "Transparent pricing · GST invoice", hi: "पारदर्शी मूल्य · GST चालान" },
+                ].map((o) => (
+                  <li key={o.en}><span className="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17l-5-5" /></svg></span><div><b><T en={o.en} hi={o.hi} /></b></div></li>
+                ))}
+              </ul>
+            </div>
           </div>
         </View>
 

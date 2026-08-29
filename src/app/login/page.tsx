@@ -378,12 +378,12 @@ export default function LoginPage() {
 
           <p className="center mt-3 text-sm text-muted">
             <T en="New to AeviWork?" hi="AeviWork पर नए हैं?" />{" "}
-            <Link href="/register" className="link">
-              <T en="Join as a worker" hi="कार्यकर्ता के रूप में जुड़ें" />
+            <Link href="/signup" className="link">
+              <T en="Create an account" hi="खाता बनाएँ" />
             </Link>{" "}
             <T en="or" hi="या" />{" "}
-            <Link href="/booking" className="link">
-              <T en="book a service" hi="सेवा बुक करें" />
+            <Link href="/signup?role=worker" className="link">
+              <T en="join as a worker" hi="कार्यकर्ता के रूप में जुड़ें" />
             </Link>
           </p>
           <div className="divider-or" style={{ margin: "16px 0" }}>

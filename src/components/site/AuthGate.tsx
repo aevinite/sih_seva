@@ -8,14 +8,14 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   const { session, ready } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
-  const isLogin = pathname === "/login" || pathname === "/login/";
+  const isPublic = ["/login", "/login/", "/signup", "/signup/"].includes(pathname);
 
   useEffect(() => {
-    if (ready && !session && !isLogin) router.replace("/login");
-  }, [ready, session, isLogin, router]);
+    if (ready && !session && !isPublic) router.replace("/login");
+  }, [ready, session, isPublic, router]);
 
-  // login is public — always render it (also prerenders its content)
-  if (isLogin) return <>{children}</>;
+  // public auth pages always render (and prerender their content)
+  if (isPublic) return <>{children}</>;
 
   // brief branded loader while we read the session (avoids landing-page flash)
   if (!ready || !session) {
