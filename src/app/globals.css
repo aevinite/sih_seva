@@ -831,8 +831,11 @@ h1, h2, h3, h4 { letter-spacing: -0.03em; }
 /* Marquee strip subtle brand tint */
 .strip { border-block: 1px solid rgba(124,92,255,.12); }
 
-/* Safe-area top for the sticky nav on notched / edge-to-edge WebViews */
+/* Safe-area top for the sticky nav on notched / edge-to-edge WebViews.
+   .wrap needs min-height (height:100% collapses against the auto-height nav,
+   which left the content pinned to the top / "going upwards"). */
 .nav { height: auto; min-height: var(--nav-h); padding-top: env(safe-area-inset-top); }
+.nav .wrap { min-height: var(--nav-h); height: auto; }
 @media (max-width: 999.98px) {
   .sidebar { top: calc(var(--nav-h) + env(safe-area-inset-top)); }
 }
