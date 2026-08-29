@@ -63,6 +63,10 @@ const GRADS = [
   "linear-gradient(135deg,#2dd4bf,#0d9488)", "linear-gradient(135deg,#60a5fa,#2563eb)", "linear-gradient(135deg,#fbbf24,#f59e0b)",
   "linear-gradient(135deg,#34d399,#059669)", "linear-gradient(135deg,#f472b6,#db2777)", "linear-gradient(135deg,#a78bfa,#7c3aed)",
 ];
+type WorkerCard = { id: string; name: string; skill: string; society: string | null; rate: number; rating: number; jobs: number; distanceKm: number | null };
+const iniOf = (n: string) => n.split(" ").map((x) => x[0]).slice(0, 2).join("").toUpperCase() || "AW";
+const gradFor = (n: string) => GRADS[(n.charCodeAt(0) || 0) % GRADS.length];
+
 type ApiBooking = { id: string; service: string; status: string; total: number; scheduled_at: string | null; created_at: string; worker?: { user?: { name?: string } | { name?: string }[] } | null };
 function mapBooking(b: ApiBooking): Booking {
   const wu = b.worker && (Array.isArray(b.worker.user) ? b.worker.user[0] : b.worker.user);
@@ -99,6 +103,7 @@ function StarRating() {
 export default function CustomerDashboard() {
   const { show } = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [workers, setWorkers] = useState<WorkerCard[]>([]);
   const [saved, setSaved] = useState(initialSaved);
   const [q, setQ] = useState("");
 
@@ -107,6 +112,20 @@ export default function CustomerDashboard() {
       .then((r) => r.json())
       .then((j) => { if (Array.isArray(j.bookings)) setBookings(j.bookings.map(mapBooking)); })
       .catch(() => {});
+
+    const load = (lat?: number, lng?: number) => {
+      const qs = lat != null ? `?lat=${lat}&lng=${lng}` : "";
+      fetch("/api/workers" + qs)
+        .then((r) => r.json())
+        .then((j) => { if (Array.isArray(j.workers)) setWorkers(j.workers); })
+        .catch(() => {});
+    };
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => load(pos.coords.latitude, pos.coords.longitude),
+        () => load()
+      );
+    } else load();
   }, []);
 
   const filtered = useMemo(
@@ -185,6 +204,43 @@ export default function CustomerDashboard() {
               <span className="icon-chip success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></span>
               <div><b><T en="Get support" hi="सहायता पाएँ" /></b><div className="text-muted text-sm"><T en="24×7 helpline" hi="24×7 हेल्पलाइन" /></div></div>
             </button>
+          </div>
+
+          {/* Available workers — names + full details from the database */}
+          <div className="card panel mt-3">
+            <div className="panel-head">
+              <h3><T en="Available workers near you" hi="आपके पास उपलब्ध कार्यकर्ता" /></h3>
+              <Link href="/services" className="link"><T en="View all →" hi="सभी देखें →" /></Link>
+            </div>
+            {workers.length === 0 && <p className="empty-state"><T en="Finding verified workers near you…" hi="आपके पास सत्यापित कार्यकर्ता खोजे जा रहे…" /></p>}
+            <div className="grid grid-3">
+              {workers.slice(0, 6).map((w) => (
+                <div className="card worker-card" key={w.id} style={{ padding: 0 }}>
+                  <div className="body">
+                    <div className="head">
+                      <span className="avatar" style={{ background: gradFor(w.name) }}>{iniOf(w.name)}</span>
+                      <div className="flex-1">
+                        <h3 style={{ fontSize: "1rem" }}>{w.name}</h3>
+                        <span className="role">{w.skill}{w.society ? " · " + w.society : ""}</span>
+                      </div>
+                      <span className="rating">
+                        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l2.5 6.5L21 9l-5 4.5L17.5 20 12 16.5 6.5 20 8 13.5 3 9l6.5-.5z" /></svg>
+                        {w.rating > 0 ? w.rating : "New"}
+                      </span>
+                    </div>
+                    <div className="worker-meta">
+                      <span className="m"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 21s-7-4.5-7-11a7 7 0 0 1 14 0c0 6.5-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></svg> {w.distanceKm != null ? w.distanceKm + " km" : "Nearby"}</span>
+                      <span className="m"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5" /></svg> {w.jobs} jobs</span>
+                      <span className="verified"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6L9 17l-5-5" /></svg> <T en="Verified" hi="सत्यापित" /></span>
+                    </div>
+                  </div>
+                  <div className="foot">
+                    <span className="price"><span className="text-muted text-sm"><T en="From " hi="से " /></span><b>₹{w.rate}</b></span>
+                    <Link href="/booking" className="btn btn-primary btn-sm"><T en="Book" hi="बुक करें" /></Link>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Active bookings + Offers (no graphs) */}
