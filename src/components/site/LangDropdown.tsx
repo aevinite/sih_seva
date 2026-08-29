@@ -23,17 +23,34 @@ const LANGS: { code: string; label: string }[] = [
 ];
 
 function currentLang() {
-  const m = typeof document !== "undefined" && document.cookie.match(/googtrans=\/[^/]+\/([\w-]+)/);
+  if (typeof document === "undefined") return "en";
+  // prefer our own stored choice (kept in sync across all dropdowns/pages),
+  // fall back to the Google Translate cookie
+  try {
+    const ls = localStorage.getItem("aw-lang");
+    if (ls) return ls;
+  } catch {}
+  const m = document.cookie.match(/googtrans=\/[^/]+\/([\w-]+)/);
   return m ? m[1] : "en";
 }
 
-/** Header language selector — drives the Google Translate element so the whole site translates. */
+/** Header language selector — drives the Google Translate element so the whole site translates.
+ *  Selection is persisted (localStorage + cookie) so every dropdown on every page stays in sync. */
 export default function LangDropdown({ light = false }: { light?: boolean }) {
   const [lang, setLang] = useState("en");
-  useEffect(() => { setLang(currentLang()); }, []);
+
+  useEffect(() => {
+    setLang(currentLang());
+    // keep in sync if the language is changed from another tab / dropdown
+    const sync = () => setLang(currentLang());
+    window.addEventListener("storage", sync);
+    window.addEventListener("focus", sync);
+    return () => { window.removeEventListener("storage", sync); window.removeEventListener("focus", sync); };
+  }, []);
 
   const change = (code: string) => {
     setLang(code);
+    try { localStorage.setItem("aw-lang", code); } catch {}
     if (code === "en") {
       // clear translation → back to original English
       const host = location.hostname;
@@ -60,7 +77,8 @@ export default function LangDropdown({ light = false }: { light?: boolean }) {
 
   return (
     <select
-      className={"lang-select" + (light ? " light" : "")}
+      className={"lang-select notranslate" + (light ? " light" : "")}
+      translate="no"
       value={lang}
       onChange={(e) => change(e.target.value)}
       aria-label="Choose language"
