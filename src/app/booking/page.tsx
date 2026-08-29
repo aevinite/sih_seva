@@ -1,9 +1,12 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/site/Navbar";
 import Footer from "@/components/site/Footer";
 import { T, useT, useToast } from "@/lib/providers";
+
+const PAYMENT_KEYS = ["upi", "card", "wallet", "cod"];
 
 const SERVICES = [
   { icon: "⚡", en: "Electrician", hi: "इलेक्ट्रीशियन", rate: 299 },
@@ -30,11 +33,19 @@ const inr = (n: number) => "₹" + n.toLocaleString("en-IN");
 export default function BookingPage() {
   const t = useT();
   const { show } = useToast();
+  const router = useRouter();
 
   const [service, setService] = useState("Electrician");
   const [slot, setSlot] = useState("10:00 AM");
   const [emergency, setEmergency] = useState(false);
   const [payment, setPayment] = useState(0);
+  const [desc, setDesc] = useState("");
+  const [addr, setAddr] = useState("");
+  const [city, setCity] = useState("");
+  const [pin, setPin] = useState("");
+  const [date, setDate] = useState("");
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const svc = SERVICES.find((s) => s.en === service)!;
   const visit = svc.rate;
@@ -43,9 +54,34 @@ export default function BookingPage() {
   const gst = Math.round(subtotal * 0.18);
   const total = subtotal + gst;
 
-  const onSubmit = (e: React.FormEvent) => {
+  const useMyLocation = () => {
+    if (!("geolocation" in navigator)) return show(t("Geolocation not supported on this device", "इस डिवाइस पर जियोलोकेशन समर्थित नहीं"));
+    show(t("Detecting your location…", "आपका स्थान पता लगाया जा रहा है…"));
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }); show(t("Location detected ✓ — matching nearest worker", "स्थान मिल गया ✓ — निकटतम कार्यकर्ता खोजा जा रहा है")); },
+      () => show(t("Couldn't get location — please enter the address", "स्थान नहीं मिला — कृपया पता दर्ज करें"))
+    );
+  };
+
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    show(t("Booking confirmed! A verified worker has been assigned.", "बुकिंग पुष्टि! एक सत्यापित कार्यकर्ता नियुक्त कर दिया गया है।"));
+    setBusy(true);
+    const payload = {
+      service, description: desc, address: addr, city, pincode: pin,
+      scheduledAt: date ? new Date(date + "T12:00:00").toISOString() : null,
+      emergency, lat: coords?.lat, lng: coords?.lng, paymentMethod: PAYMENT_KEYS[payment],
+    };
+    const res = await fetch("/api/bookings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    const j = await res.json();
+    setBusy(false);
+    if (res.ok && j.booking) {
+      show(j.booking.worker_id
+        ? t("Booking confirmed! A verified worker has been assigned.", "बुकिंग पुष्टि! एक सत्यापित कार्यकर्ता नियुक्त कर दिया गया है।")
+        : t("Booking placed! We're matching a worker for you.", "बुकिंग हो गई! हम आपके लिए कार्यकर्ता खोज रहे हैं।"));
+      setTimeout(() => router.push("/dashboard-customer"), 900);
+    } else {
+      show(j.error || t("Could not create booking", "बुकिंग नहीं बन सकी"));
+    }
   };
 
   return (
@@ -108,7 +144,7 @@ export default function BookingPage() {
                 <h3 className="mb-2" style={{ fontSize: "1.05rem" }}><T en="2. Describe the job" hi="2. काम का विवरण दें" /></h3>
                 <div className="field">
                   <label htmlFor="job-desc"><T en="What do you need done?" hi="आपको क्या करवाना है?" /></label>
-                  <textarea id="job-desc" className="textarea" placeholder={t("e.g. Two ceiling fans need installation and one switchboard is sparking…", "जैसे दो पंखे लगवाने हैं और एक स्विचबोर्ड में चिंगारी आ रही है…")} />
+                  <textarea id="job-desc" className="textarea" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder={t("e.g. Two ceiling fans need installation and one switchboard is sparking…", "जैसे दो पंखे लगवाने हैं और एक स्विचबोर्ड में चिंगारी आ रही है…")} />
                   <span className="hint"><T en="A clear description helps us match the right skilled worker faster." hi="स्पष्ट विवरण सही कुशल कार्यकर्ता को जल्दी खोजने में मदद करता है।" /></span>
                 </div>
               </div>
@@ -117,7 +153,7 @@ export default function BookingPage() {
               <div className="card">
                 <div className="between mb-2 wrap-flex">
                   <h3 style={{ fontSize: "1.05rem" }}><T en="3. Service address" hi="3. सेवा का पता" /></h3>
-                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => show(t("Detecting your location…", "आपका स्थान पता लगाया जा रहा है…"))}>
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={useMyLocation}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 21s-7-4.5-7-11a7 7 0 0 1 14 0c0 6.5-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></svg>
                     <span><T en="Use my current location" hi="मेरा वर्तमान स्थान उपयोग करें" /></span>
                   </button>
@@ -127,16 +163,16 @@ export default function BookingPage() {
                     <label htmlFor="addr"><T en="Full address" hi="पूरा पता" /></label>
                     <div className="input-icon">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 21s-7-4.5-7-11a7 7 0 0 1 14 0c0 6.5-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></svg>
-                      <input id="addr" className="input" placeholder={t("House / flat no., street, area, landmark", "मकान/फ्लैट नं., सड़क, क्षेत्र, लैंडमार्क")} />
+                      <input id="addr" className="input" value={addr} onChange={(e) => setAddr(e.target.value)} placeholder={t("House / flat no., street, area, landmark", "मकान/फ्लैट नं., सड़क, क्षेत्र, लैंडमार्क")} />
                     </div>
                   </div>
                   <div className="field">
                     <label htmlFor="city"><T en="City" hi="शहर" /></label>
-                    <input id="city" className="input" placeholder={t("e.g. Pune", "जैसे पुणे")} />
+                    <input id="city" className="input" value={city} onChange={(e) => setCity(e.target.value)} placeholder={t("e.g. Pune", "जैसे पुणे")} />
                   </div>
                   <div className="field">
                     <label htmlFor="pin"><T en="PIN code" hi="पिन कोड" /></label>
-                    <input id="pin" className="input" inputMode="numeric" placeholder={t("e.g. 411001", "जैसे 411001")} />
+                    <input id="pin" className="input" inputMode="numeric" value={pin} onChange={(e) => setPin(e.target.value)} placeholder={t("e.g. 411001", "जैसे 411001")} />
                   </div>
                 </div>
               </div>
@@ -146,7 +182,7 @@ export default function BookingPage() {
                 <h3 className="mb-2" style={{ fontSize: "1.05rem" }}><T en="4. Pick a date & time" hi="4. तारीख व समय चुनें" /></h3>
                 <div className="field mb-3">
                   <label htmlFor="date"><T en="Preferred date" hi="पसंदीदा तारीख" /></label>
-                  <input id="date" type="date" className="input" />
+                  <input id="date" type="date" className="input" value={date} onChange={(e) => setDate(e.target.value)} />
                 </div>
                 <label className="field" style={{ marginBottom: 10 }}><span><T en="Available time slots" hi="उपलब्ध समय स्लॉट" /></span></label>
                 <div className="time-slots">
@@ -203,8 +239,8 @@ export default function BookingPage() {
                 </div>
               </div>
 
-              <button type="submit" className="btn btn-primary btn-lg btn-block">
-                <T en="Confirm Booking" hi="बुकिंग पुष्टि करें" />
+              <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={busy}>
+                {busy ? <T en="Confirming…" hi="पुष्टि हो रही…" /> : <T en="Confirm Booking" hi="बुकिंग पुष्टि करें" />}
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
               </button>
             </form>

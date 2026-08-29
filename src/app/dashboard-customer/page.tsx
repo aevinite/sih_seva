@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/site/Navbar";
 import {
@@ -49,15 +49,31 @@ const extraNav = [
   { en: "Logout", hi: "लॉगआउट", icon: IcOut, toast: "Signed out" },
 ];
 
-type Booking = { id: number; svc: string; who: string; ini: string; color: string; when: string; status: string; kind: PillKind; amt: string };
-const initialBookings: Booking[] = [
-  { id: 1, svc: "AC Repair", who: "Ramesh Solanki", ini: "RS", color: "linear-gradient(135deg,#2dd4bf,#0d9488)", when: "26 Aug, 10:00 AM", status: "Confirmed", kind: "info", amt: "₹529" },
-  { id: 2, svc: "Plumbing — Leak", who: "Anil Verma", ini: "AV", color: "linear-gradient(135deg,#60a5fa,#2563eb)", when: "24 Aug, 06:00 PM", status: "In progress", kind: "warning", amt: "₹349" },
-  { id: 3, svc: "Deep Cleaning", who: "Priya Kumari", ini: "PK", color: "linear-gradient(135deg,#fbbf24,#f59e0b)", when: "18 Aug, 09:00 AM", status: "Completed", kind: "success", amt: "₹699" },
-  { id: 4, svc: "Carpentry — Door", who: "Suresh Kumar", ini: "SK", color: "linear-gradient(135deg,#34d399,#059669)", when: "11 Aug, 02:00 PM", status: "Completed", kind: "success", amt: "₹899" },
-  { id: 5, svc: "Electrical Fitting", who: "Meena Joshi", ini: "MJ", color: "linear-gradient(135deg,#f472b6,#db2777)", when: "02 Aug, 11:00 AM", status: "Completed", kind: "success", amt: "₹449" },
-  { id: 6, svc: "Gardening", who: "Deepak Gowda", ini: "DG", color: "linear-gradient(135deg,#a78bfa,#7c3aed)", when: "28 Jul, 08:00 AM", status: "Cancelled", kind: "danger", amt: "₹0" },
+type Booking = { id: string; svc: string; who: string; ini: string; color: string; when: string; status: string; kind: PillKind; amt: string };
+
+const STATUS_MAP: Record<string, { label: string; kind: PillKind }> = {
+  pending: { label: "Pending", kind: "warning" },
+  confirmed: { label: "Confirmed", kind: "info" },
+  assigned: { label: "Assigned", kind: "info" },
+  in_progress: { label: "In progress", kind: "warning" },
+  completed: { label: "Completed", kind: "success" },
+  cancelled: { label: "Cancelled", kind: "danger" },
+};
+const GRADS = [
+  "linear-gradient(135deg,#2dd4bf,#0d9488)", "linear-gradient(135deg,#60a5fa,#2563eb)", "linear-gradient(135deg,#fbbf24,#f59e0b)",
+  "linear-gradient(135deg,#34d399,#059669)", "linear-gradient(135deg,#f472b6,#db2777)", "linear-gradient(135deg,#a78bfa,#7c3aed)",
 ];
+type ApiBooking = { id: string; service: string; status: string; total: number; scheduled_at: string | null; created_at: string; worker?: { user?: { name?: string } | { name?: string }[] } | null };
+function mapBooking(b: ApiBooking): Booking {
+  const wu = b.worker && (Array.isArray(b.worker.user) ? b.worker.user[0] : b.worker.user);
+  const who = wu?.name || "Unassigned";
+  const ini = who.split(" ").map((x) => x[0]).slice(0, 2).join("").toUpperCase() || "AW";
+  const color = GRADS[(who.charCodeAt(0) || 0) % GRADS.length];
+  const d = b.scheduled_at ? new Date(b.scheduled_at) : new Date(b.created_at);
+  const when = d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" }) + (b.scheduled_at ? ", " + d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "");
+  const st = STATUS_MAP[b.status] || { label: b.status, kind: "info" as PillKind };
+  return { id: b.id, svc: b.service, who, ini, color, when, status: st.label, kind: st.kind, amt: "₹" + (b.total || 0) };
+}
 
 const initialSaved = [
   { id: 1, n: "Ramesh Solanki", r: "Electrician · Kochi", ini: "RS", color: "linear-gradient(135deg,#2dd4bf,#0d9488)", rate: "4.9" },
@@ -82,21 +98,32 @@ function StarRating() {
 
 export default function CustomerDashboard() {
   const { show } = useToast();
-  const [bookings, setBookings] = useState(initialBookings);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [saved, setSaved] = useState(initialSaved);
   const [q, setQ] = useState("");
+
+  useEffect(() => {
+    fetch("/api/bookings")
+      .then((r) => r.json())
+      .then((j) => { if (Array.isArray(j.bookings)) setBookings(j.bookings.map(mapBooking)); })
+      .catch(() => {});
+  }, []);
 
   const filtered = useMemo(
     () => bookings.filter((b) => (b.svc + b.who + b.status).toLowerCase().includes(q.toLowerCase())),
     [bookings, q]
   );
 
-  const cancel = (id: number) => {
+  const cancel = async (id: string) => {
+    await fetch(`/api/bookings/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "cancel" }) });
     setBookings((rows) => rows.map((r) => (r.id === id ? { ...r, status: "Cancelled", kind: "danger", amt: "₹0" } : r)));
     show("Booking cancelled");
   };
 
-  const upcoming = bookings.filter((b) => b.status === "Confirmed" || b.status === "In progress");
+  const upcoming = bookings.filter((b) => ["Confirmed", "In progress", "Assigned", "Pending"].includes(b.status));
+  const activeCount = upcoming.length;
+  const completedCount = bookings.filter((b) => b.status === "Completed").length;
+  const spent = bookings.filter((b) => b.status === "Completed").reduce((a, b) => a + (parseInt(b.amt.replace(/[^0-9]/g, "")) || 0), 0);
 
   return (
     <>
@@ -113,10 +140,10 @@ export default function CustomerDashboard() {
         <View name="overview">
           <div className="kpi-grid">
             {[
-              { ic: IcCal, cls: "", trend: "+1", val: "2", en: "Active bookings", hi: "सक्रिय बुकिंग" },
-              { ic: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5" /></svg>, cls: "success", trend: "+4", val: "37", en: "Completed services", hi: "पूर्ण सेवाएँ" },
-              { ic: IcCard, cls: "amber", trend: "+12%", val: "₹48,200", en: "Total spent", hi: "कुल खर्च" },
-              { ic: IcHeart, cls: "info", trend: "", val: "6", en: "Saved workers", hi: "सहेजे कार्यकर्ता" },
+              { ic: IcCal, cls: "", trend: "", val: String(activeCount), en: "Active bookings", hi: "सक्रिय बुकिंग" },
+              { ic: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5" /></svg>, cls: "success", trend: "", val: String(completedCount), en: "Completed services", hi: "पूर्ण सेवाएँ" },
+              { ic: IcCard, cls: "amber", trend: "", val: "₹" + spent.toLocaleString("en-IN"), en: "Total spent", hi: "कुल खर्च" },
+              { ic: IcHeart, cls: "info", trend: "", val: String(saved.length), en: "Saved workers", hi: "सहेजे कार्यकर्ता" },
             ].map((k) => (
               <div className="card kpi" key={k.en}>
                 <div className="top"><span className={"icon-chip " + k.cls}>{k.ic}</span>{k.trend && <span className="trend up">{k.trend}</span>}</div>
@@ -209,7 +236,7 @@ export default function CustomerDashboard() {
                       <td>
                         <div className="row-actions">
                           <ActionButton toast="Rebooking started">Rebook</ActionButton>
-                          {(b.status === "Confirmed" || b.status === "In progress") && (
+                          {["Confirmed", "In progress", "Assigned", "Pending"].includes(b.status) && (
                             <button className="btn btn-ghost btn-sm" onClick={() => cancel(b.id)}>Cancel</button>
                           )}
                         </div>
