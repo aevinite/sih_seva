@@ -18,6 +18,17 @@ const DASH = [
   { href: "/dashboard-admin", en: "Federation Admin", hi: "फेडरेशन एडमिन" },
 ];
 
+// Phone bottom tab bar — short labels + icons so all top-level sections fit.
+const BOTTOM = [
+  { href: "/", en: "Home", hi: "होम", icon: <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" /> },
+  { href: "/services", en: "Services", hi: "सेवाएँ", icon: <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" /> },
+  { href: "/booking", en: "Book", hi: "बुक", icon: <><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M3 9h18M8 2v4M16 2v4M12 13v4M10 15h4" /></> },
+  { href: "/register", en: "Join", hi: "जुड़ें", icon: <><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20v-1a4 4 0 0 1 4-4h5M18 8v6M21 11h-6" /></> },
+  { href: "/dashboard-customer", en: "Customer", hi: "ग्राहक", icon: <><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" /></> },
+  { href: "/dashboard-worker", en: "Worker", hi: "वर्कर", icon: <><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></> },
+  { href: "/dashboard-admin", en: "Federation", hi: "फेडरेशन", icon: <path d="M12 3 5 6v5c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6z" /> },
+];
+
 export function BrandMark({ className = "brand-mark" }: { className?: string }) {
   return (
     <span className={className}>
@@ -118,11 +129,6 @@ export default function Navbar() {
             <span className="mm-divider" />
           </div>
         )}
-        {LINKS.concat(DASH).map((l) => (
-          <Link key={l.href + l.en} href={l.href}>
-            <T en={l.en} hi={l.hi} />
-          </Link>
-        ))}
         {session ? (
           <button className="btn btn-primary btn-block mt-2" onClick={signOut}>
             <T en="Sign out" hi="साइन आउट" />
@@ -133,6 +139,18 @@ export default function Navbar() {
           </Link>
         )}
       </div>
+
+      {/* Phone bottom tab bar — all top-level sections, scrolls if they overflow */}
+      <nav className="bottom-nav" aria-label="Sections">
+        {BOTTOM.map((l) => (
+          <Link key={l.href} href={l.href} className={isActive(l.href) ? "active" : ""}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              {l.icon}
+            </svg>
+            <span><T en={l.en} hi={l.hi} /></span>
+          </Link>
+        ))}
+      </nav>
     </>
   );
 }
