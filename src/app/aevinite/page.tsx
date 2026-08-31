@@ -50,7 +50,7 @@ export default function AeviniteConsole() {
     { view: "societies", en: "Societies", hi: "समितियाँ", title: "Cooperative Societies", icon: <NavIcon d={<path d="M3 21h18M4 21V10l5-3 5 3v11M14 21v-7l6-3v10" />} /> },
     { view: "workers", en: "Workers", hi: "कार्यकर्ता", icon: <NavIcon d={<><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></>} /> },
     { view: "customers", en: "Customers", hi: "ग्राहक", icon: <NavIcon d={<><circle cx="9" cy="8" r="3.5" /><path d="M2.5 21a6.5 6.5 0 0 1 13 0M17 11a3 3 0 1 0-1-5.8" /></>} /> },
-    { view: "verifications", en: "Verifications", hi: "सत्यापन", title: "Verification Queue", icon: <NavIcon d={<><path d="M12 2 4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6z" /><path d="M9 12l2 2 4-4" /></>} /> },
+    { view: "verifications", en: "Verifications", hi: "सत्यापन", title: "Verification Queue", icon: <NavIcon d={<><path d="M12 2 4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6z" /><path d="M8.4 12l2.7 2.7 5.1-5.6" /></>} /> },
     { view: "bookings", en: "Bookings", hi: "बुकिंग", icon: <NavIcon d={<><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M3 10h18M8 2v4M16 2v4" /></>} /> },
     { view: "payments", en: "Payments", hi: "भुगतान", title: "Payments & Payouts", icon: <NavIcon d={<><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" /></>} /> },
     { view: "welfare", en: "Welfare Fund", hi: "कल्याण कोष", title: "Welfare Fund", icon: <NavIcon d={<path d="M12 21s-7-4-7-10V5l7-2 7 2v6c0 6-7 10-7 10z" />} /> },
@@ -87,7 +87,7 @@ export default function AeviniteConsole() {
           <Link href="/" className="brand">
             <span className="brand-mark">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2 4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6z" /><path d="M9 12l2 2 4-4" />
+                <path d="M12 2 4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6z" /><path d="M8.4 12l2.7 2.7 5.1-5.6" />
               </svg>
             </span>
             <span>AeviWork<small>Super Admin Console</small></span>

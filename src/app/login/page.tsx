@@ -92,7 +92,7 @@ const DEMO_LIST = [
 const brandPath = (
   <>
     <path d="M12 2 4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6z" />
-    <path d="M9 12l2 2 4-4" />
+    <path d="M8.4 12l2.7 2.7 5.1-5.6" />
   </>
 );
 

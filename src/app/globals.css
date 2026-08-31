@@ -514,6 +514,9 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 700; line-height
 .dash-main { padding: clamp(20px, 3vw, 34px); background: var(--background); }
 .dash-head { margin-bottom: 26px; }
 .dash-head h1 { font-size: clamp(1.5rem, 3vw, 2rem); }
+/* Header subtitle (e.g. "Welcome back, …"): stronger than the default muted tone
+   so it reads clearly against the dashboard background in both light and dark. */
+.dash-head p { color: color-mix(in srgb, var(--foreground) 78%, var(--background)); opacity: 1; }
 
 /* KPI tiles */
 .kpi-grid { display: grid; gap: 18px; grid-template-columns: repeat(2, 1fr); margin-bottom: 26px; }
