@@ -825,8 +825,16 @@ h1, h2, h3, h4 { letter-spacing: -0.03em; }
 .cta-band { background: linear-gradient(120deg, var(--primary-strong), #4c1d95 55%, var(--ink)); }
 .cta-band::before { background: radial-gradient(circle, rgba(34,211,238,.35), transparent 60%); }
 
-/* Dashboard active nav gets a subtle glow */
-.side-nav a.active { box-shadow: 0 8px 20px -10px rgba(124,92,255,.6); }
+/* Dashboard sidebar follows the theme (light in light mode, dark in dark mode) */
+.sidebar { background: var(--surface); color: var(--foreground); border-right: 1px solid var(--border); }
+.sidebar .who { background: var(--muted); }
+.sidebar .who b { color: var(--foreground); }
+.sidebar .who span { color: var(--muted-foreground); }
+.side-nav a { color: var(--muted-foreground); }
+.side-nav a:hover { background: var(--muted); color: var(--foreground); }
+.side-nav a.active { background: var(--primary); color: var(--primary-foreground); box-shadow: 0 8px 20px -10px rgba(124,92,255,.6); }
+.side-label { color: var(--muted-foreground); }
+@media (max-width: 999.98px) { .sidebar { border-bottom: 1px solid var(--border); } }
 .page-head::before { background: radial-gradient(circle, rgba(124,92,255,.4), transparent 60%); }
 
 /* Marquee strip subtle brand tint */
