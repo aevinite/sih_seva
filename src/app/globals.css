@@ -561,9 +561,9 @@ table.data tr:hover td { background: var(--muted); }
 .toast.show { transform: translateX(-50%) translateY(0); }
 .toast svg { width: 18px; height: 18px; color: var(--primary); }
 
-/* Reveal on scroll */
-.reveal { opacity: 0; transform: translateY(20px); transition: opacity .6s ease, transform .6s ease; }
-.reveal.in { opacity: 1; transform: none; }
+/* Reveal on scroll — gentle fade only (no upward slide that looked janky) */
+.reveal { opacity: 0; transition: opacity .45s ease; }
+.reveal.in { opacity: 1; }
 
 /* Divider */
 .divider { height: 1px; background: var(--border); margin-block: 22px; }
@@ -695,9 +695,10 @@ input, select, textarea, .input, .select, .textarea { max-width: 100%; }
 /* ============================================================
    Panel view-switching (multi-section dashboards)
    ============================================================ */
-.view { display: none; animation: viewIn .32s ease; }
+.view { display: none; animation: viewIn .24s ease-out; }
 .view.active { display: block; }
-@keyframes viewIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+/* clean fade — no vertical "jump up" */
+@keyframes viewIn { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .view { animation: none; } }
 
 /* Empty-state row for filtered tables/lists */
