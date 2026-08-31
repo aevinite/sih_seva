@@ -147,6 +147,38 @@ export default function CustomerDashboard() {
   const marketWorkers = workers.filter(
     (w) => (cat === "All" || w.skill === cat) && (w.name + " " + w.skill + " " + (w.society || "")).toLowerCase().includes(wq.toLowerCase())
   );
+  // near-first grouping: within 10 km on top, everyone else below a divider (workers arrive nearest-first from the API)
+  const anyDist = marketWorkers.some((w) => w.distanceKm != null);
+  const nearWorkers = marketWorkers.filter((w) => w.distanceKm != null && w.distanceKm <= 10);
+  const farWorkers = marketWorkers.filter((w) => !(w.distanceKm != null && w.distanceKm <= 10));
+  const splitView = anyDist && nearWorkers.length > 0 && farWorkers.length > 0;
+
+  const renderCard = (w: WorkerCard) => {
+    const near = w.distanceKm != null && w.distanceKm <= 10;
+    return (
+      <div className="card worker-card" key={w.id} style={{ padding: 0 }}>
+        <div className="body">
+          <div className="head">
+            <span className="avatar" style={{ background: gradFor(w.name) }}>{iniOf(w.name)}</span>
+            <div className="flex-1">
+              <h3 style={{ fontSize: "1rem" }}>{w.name}</h3>
+              <span className="role">{w.skill}{w.society ? " · " + w.society : ""}</span>
+            </div>
+            <span className="rating"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l2.5 6.5L21 9l-5 4.5L17.5 20 12 16.5 6.5 20 8 13.5 3 9l6.5-.5z" /></svg> {w.rating > 0 ? w.rating : "New"}</span>
+          </div>
+          <div className="worker-meta">
+            <span className="m" style={near ? { color: "var(--success)", fontWeight: 600 } : undefined}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 21s-7-4.5-7-11a7 7 0 0 1 14 0c0 6.5-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></svg> {w.distanceKm != null ? w.distanceKm + " km" : "Nearby"}{near ? " · " + t("near you", "आपके पास") : ""}</span>
+            <span className="m"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5" /></svg> {w.jobs} jobs</span>
+            <span className="verified"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6L9 17l-5-5" /></svg> <T en="Verified" hi="सत्यापित" /></span>
+          </div>
+        </div>
+        <div className="foot">
+          <span className="price"><span className="text-muted text-sm"><T en="From " hi="से " /></span><b>₹{w.rate}</b></span>
+          <Link href="/booking" className="btn btn-primary btn-sm"><T en="Book" hi="बुक करें" /></Link>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -177,32 +209,24 @@ export default function CustomerDashboard() {
                 <span key={c.en} className={"chip" + (cat === c.en ? " active" : "")} onClick={() => setCat(c.en)}>{c.emoji} <T en={c.en} hi={c.hi} /></span>
               ))}
             </div>
+            <p className="text-muted text-sm" style={{ marginBottom: 12 }}>
+              {anyDist
+                ? t(`⭐ Recommended near you — nearest first · ${nearWorkers.length} verified worker(s) within 10 km`, `⭐ आपके पास अनुशंसित — निकटतम पहले · 10 किमी के भीतर ${nearWorkers.length} सत्यापित कार्यकर्ता`)
+                : t("Turn on location to see workers recommended within 10 km.", "10 किमी के भीतर अनुशंसित कार्यकर्ता देखने हेतु स्थान चालू करें।")}
+            </p>
             {marketWorkers.length === 0 && <p className="empty-state"><T en="No workers match — try another specialty or search." hi="कोई कार्यकर्ता मेल नहीं खाता — दूसरी विशेषता आज़माएँ।" /></p>}
-            <div className="grid grid-3">
-              {marketWorkers.map((w) => (
-                <div className="card worker-card" key={w.id} style={{ padding: 0 }}>
-                  <div className="body">
-                    <div className="head">
-                      <span className="avatar" style={{ background: gradFor(w.name) }}>{iniOf(w.name)}</span>
-                      <div className="flex-1">
-                        <h3 style={{ fontSize: "1rem" }}>{w.name}</h3>
-                        <span className="role">{w.skill}{w.society ? " · " + w.society : ""}</span>
-                      </div>
-                      <span className="rating"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l2.5 6.5L21 9l-5 4.5L17.5 20 12 16.5 6.5 20 8 13.5 3 9l6.5-.5z" /></svg> {w.rating > 0 ? w.rating : "New"}</span>
-                    </div>
-                    <div className="worker-meta">
-                      <span className="m"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 21s-7-4.5-7-11a7 7 0 0 1 14 0c0 6.5-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></svg> {w.distanceKm != null ? w.distanceKm + " km" : "Nearby"}</span>
-                      <span className="m"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5" /></svg> {w.jobs} jobs</span>
-                      <span className="verified"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6L9 17l-5-5" /></svg> <T en="Verified" hi="सत्यापित" /></span>
-                    </div>
-                  </div>
-                  <div className="foot">
-                    <span className="price"><span className="text-muted text-sm"><T en="From " hi="से " /></span><b>₹{w.rate}</b></span>
-                    <Link href="/booking" className="btn btn-primary btn-sm"><T en="Book" hi="बुक करें" /></Link>
-                  </div>
+            {splitView ? (
+              <>
+                <div className="grid grid-3">{nearWorkers.map(renderCard)}</div>
+                <div className="row" style={{ alignItems: "center", gap: 12, margin: "22px 0 14px" }}>
+                  <span className="text-muted text-sm" style={{ whiteSpace: "nowrap", fontWeight: 600 }}><T en="Farther than 10 km" hi="10 किमी से दूर" /></span>
+                  <span style={{ flex: 1, height: 1, background: "var(--border)" }} />
                 </div>
-              ))}
-            </div>
+                <div className="grid grid-3">{farWorkers.map(renderCard)}</div>
+              </>
+            ) : (
+              <div className="grid grid-3">{marketWorkers.map(renderCard)}</div>
+            )}
           </div>
 
           {/* Quick actions */}

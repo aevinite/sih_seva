@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin, T } from "@/lib/supabase";
-import { requireUser } from "@/lib/api";
+import { requireUser, distanceKm } from "@/lib/api";
 
 // GET /api/worker — the signed-in worker's profile, jobs, earnings, certs, welfare
 export async function GET() {
@@ -23,9 +23,22 @@ export async function GET() {
     supabaseAdmin.from(T.ratings).select("stars, comment, created_at, by:aw_users(name)").eq("worker_id", wp.id).order("created_at", { ascending: false }),
   ]);
 
-  const B = bookings || [];
-  const requests = B.filter((b) => b.status === "assigned");
-  const schedule = B.filter((b) => b.status === "in_progress" || b.status === "confirmed");
+  // distance from the worker's base location to each job (null when either side lacks coords)
+  const wlat = wp.lat as number | null;
+  const wlng = wp.lng as number | null;
+  const withDist = <Row extends { lat?: number | null; lng?: number | null }>(b: Row) => ({
+    ...b,
+    distanceKm:
+      wlat != null && wlng != null && b.lat != null && b.lng != null
+        ? Math.round(distanceKm(wlat, wlng, b.lat, b.lng) * 10) / 10
+        : null,
+  });
+  const nearestFirst = (a: { distanceKm: number | null }, b: { distanceKm: number | null }) =>
+    (a.distanceKm ?? 1e9) - (b.distanceKm ?? 1e9);
+
+  const B = (bookings || []).map(withDist);
+  const requests = B.filter((b) => b.status === "assigned").sort(nearestFirst); // nearest job requests first
+  const schedule = B.filter((b) => b.status === "in_progress" || b.status === "confirmed").sort(nearestFirst);
   const completed = B.filter((b) => b.status === "completed");
   const earnings = completed.reduce((a, b) => a + Math.round((b.total || 0) * 0.92), 0); // 92% to worker
 

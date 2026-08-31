@@ -35,7 +35,7 @@ const moneyTick = (v: number | string) => "₹" + Number(v) / 1000 + "k";
 const GRADS = ["linear-gradient(135deg,#2dd4bf,#0d9488)", "linear-gradient(135deg,#60a5fa,#2563eb)", "linear-gradient(135deg,#fbbf24,#f59e0b)", "linear-gradient(135deg,#a78bfa,#7c3aed)", "linear-gradient(135deg,#34d399,#059669)", "linear-gradient(135deg,#f472b6,#db2777)"];
 
 type NameRef = { name?: string } | { name?: string }[] | null | undefined;
-type Bk = { id: string; service: string; description?: string; address?: string; city?: string; scheduled_at?: string | null; created_at: string; emergency: boolean; total: number; status: string; customer?: NameRef };
+type Bk = { id: string; service: string; description?: string; address?: string; city?: string; scheduled_at?: string | null; created_at: string; emergency: boolean; total: number; status: string; customer?: NameRef; distanceKm?: number | null };
 type WData = {
   profile: { name: string; skills: string[]; society: string | null; rating: number; ratingCount: number; jobsDone: number; verification: string; available: boolean; insuranceActive: boolean; welfareBalance: number } | null;
   requests: Bk[]; schedule: Bk[]; completed: Bk[]; earnings: number;
@@ -53,6 +53,18 @@ const whenOf = (b: Bk) => {
   return { day: d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" }), time: b.scheduled_at ? d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : b.emergency ? "On-demand" : "Flexible" };
 };
 const net = (b: Bk) => Math.round((b.total || 0) * 0.92);
+const pin = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 21s-7-4.5-7-11a7 7 0 0 1 14 0c0 6.5-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></svg>;
+/* proximity chip: green "near you" when the job is within 10 km of the worker */
+const DistTag = ({ b }: { b: Bk }) => {
+  if (b.distanceKm == null) return null;
+  const near = b.distanceKm <= 10;
+  return (
+    <span className="text-xs" style={{ display: "inline-flex", alignItems: "center", gap: 3, marginTop: 2, color: near ? "var(--success)" : "var(--muted-foreground)", fontWeight: near ? 600 : 400 }}>
+      <span style={{ width: 12, height: 12, display: "inline-flex" }}>{pin}</span>
+      {b.distanceKm} km{near ? " · near you" : ""}
+    </span>
+  );
+};
 
 export default function WorkerDashboard() {
   const { show } = useToast();
@@ -135,7 +147,7 @@ export default function WorkerDashboard() {
                     {filteredReq.map((r) => { const w = whenOf(r); return (
                       <tr key={r.id}>
                         <td><b>{r.service} {r.emergency && <span className="pill pill-danger" style={{ marginLeft: 4 }}>Emergency</span>}</b><div className="text-muted text-xs">{nameOf(r.customer) || "Customer"}</div></td>
-                        <td>{r.address || r.city || "—"}<div className="text-muted text-xs">{r.city}</div></td>
+                        <td>{r.address || r.city || "—"}<div className="text-muted text-xs">{r.city}</div><DistTag b={r} /></td>
                         <td>{w.day}<div className="text-muted text-xs">{w.time}</div></td>
                         <td><b className="tnum">{inr(net(r))}</b></td>
                         <td><div className="row-actions">
@@ -165,7 +177,7 @@ export default function WorkerDashboard() {
                       <tr key={j.id}>
                         <td><b>{w.day}</b><div className="text-muted text-xs">{w.time}</div></td>
                         <td><div className="td-user"><span className="avatar" style={{ width: 32, height: 32, fontSize: ".75rem", background: grad(cn) }}>{iniOf(cn)}</span>{cn}</div></td>
-                        <td>{j.service}<div className="text-muted text-xs">{j.address || j.city || ""}</div></td>
+                        <td>{j.service}<div className="text-muted text-xs">{j.address || j.city || ""}</div><DistTag b={j} /></td>
                         <td>{j.status === "in_progress" ? <StatusPill kind="warning">In progress</StatusPill> : <StatusPill kind="info">Confirmed</StatusPill>}</td>
                         <td><button className="btn btn-primary btn-sm" onClick={() => act(j.id, "complete")}><T en="Mark complete" hi="पूर्ण करें" /></button></td>
                       </tr>

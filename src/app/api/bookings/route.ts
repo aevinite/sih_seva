@@ -51,9 +51,12 @@ export async function POST(req: Request) {
     if (cands && cands.length) {
       let best = cands[0];
       if (lat != null && lng != null) {
-        best = cands
+        const ranked = cands
           .map((c) => ({ c, d: c.lat != null && c.lng != null ? distanceKm(lat, lng, c.lat, c.lng) : 1e9 }))
-          .sort((x, y) => x.d - y.d)[0].c;
+          .sort((x, y) => x.d - y.d);
+        // prefer the nearest verified worker WITHIN 10 km; else fall back to the nearest overall
+        const within10 = ranked.filter((r) => r.d <= 10);
+        best = (within10[0] || ranked[0]).c;
       }
       workerId = best.id;
       rate = best.rate_per_visit || rate;

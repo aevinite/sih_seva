@@ -237,7 +237,9 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 700; line-height
   backdrop-filter: blur(14px); border-bottom: 1px solid rgba(255,255,255,.08);
 }
 .nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 100%; gap: 16px; }
-.brand { display: flex; align-items: center; gap: 11px; color: #fff; font-family: var(--font-display); font-weight: 700; font-size: 1.12rem; }
+.brand { display: flex; align-items: center; gap: 11px; color: #fff; font-family: var(--font-display); font-weight: 700; font-size: 1.12rem; min-width: 0; }
+.brand > span { display: flex; flex-direction: column; min-width: 0; line-height: 1.12; overflow: hidden; }
+.brand > span, .brand small { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
 .brand-mark {
   width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center;
   background: linear-gradient(135deg, var(--primary), var(--accent)); color: #04120f; flex: none;
@@ -251,7 +253,7 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 700; line-height
   transition: background .15s, color .15s;
 }
 .nav-links a:hover, .nav-links a.active { color: #fff; background: rgba(255,255,255,.1); }
-.nav-actions { display: flex; align-items: center; gap: 8px; }
+.nav-actions { display: flex; align-items: center; gap: 8px; flex: none; }
 .icon-btn {
   width: 40px; height: 40px; border-radius: var(--radius-full); display: grid; place-items: center;
   color: rgba(255,255,255,.85); background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
@@ -265,10 +267,15 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 700; line-height
   transition: background .15s;
 }
 .lang-toggle:hover { background: rgba(255,255,255,.16); }
-@media (min-width: 960px) { .nav-links { display: flex; } .menu-btn { display: none; } }
+@media (min-width: 960px) { .nav-links { display: flex; } }
 
 /* Mobile menu */
 .menu-btn { display: grid; }
+/* Placed AFTER the base rule so it actually wins: hamburger only below 960px */
+@media (min-width: 960px) { .menu-btn { display: none; } }
+/* Keep the top-bar sign-out/sign-in out of the tablet band — it appears only with
+   the full nav (>=960), so 860–960px no longer shows both a button AND the menu icon */
+@media (max-width: 959.98px) { .nav-actions .hide-mobile { display: none; } }
 .mobile-menu {
   position: fixed; inset: var(--nav-h) 0 auto 0; z-index: 49; background: var(--ink);
   border-bottom: 1px solid rgba(255,255,255,.1); padding: 16px 20px 24px;
@@ -653,6 +660,24 @@ input, select, textarea, .input, .select, .textarea { max-width: 100%; }
 }
 
 /* ============================================================
+   PHONE TOP-BAR (<= 620px): keep brand + actions from crowding.
+   The language picker collapses to an icon-only globe button so
+   it never overlaps the theme toggle or the menu button.
+   ============================================================ */
+@media (max-width: 620px) {
+  .nav .wrap { gap: 10px; }
+  .nav-actions { gap: 6px; }
+  .lang-current { display: none; }              /* icon-only language button on phones */
+  .lang-select { padding: 0; width: 40px; height: 40px; justify-content: center; gap: 0; }
+  .lang-select .lang-caret { display: none; }   /* globe alone is clear; drop the caret to stay tidy */
+  .lang-menu { min-width: 190px; }
+}
+/* Match the theme toggle's 44px square on touch phones so the two buttons line up */
+@media (max-width: 620px) and (pointer: coarse) {
+  .lang-select { width: 44px; height: 44px; }
+}
+
+/* ============================================================
    SMALL PHONES  (<= 380px): e.g. iPhone SE / Galaxy A0x
    ============================================================ */
 @media (max-width: 380px) {
@@ -661,7 +686,7 @@ input, select, textarea, .input, .select, .textarea { max-width: 100%; }
   .brand small { display: none; }               /* drop tagline so the top bar never overflows */
   .brand-mark { width: 34px; height: 34px; }
   .nav .wrap { gap: 8px; }
-  .nav-actions { gap: 6px; }
+  .nav-actions { gap: 5px; }
   .lang-toggle { padding: 0 10px; }
   .hero h1 { font-size: clamp(1.9rem, 8vw, 2.3rem); }
   .kpi-grid { grid-template-columns: 1fr; }      /* single column so numbers never clip */
