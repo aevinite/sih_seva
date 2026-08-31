@@ -59,8 +59,26 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
+/* ---------------- Dashboard mobile nav bridge ----------------
+   Lets DashboardShell publish its section nav so the site Navbar's
+   top-right menu (three-dots) can present it on phones, instead of a
+   separate always-visible horizontal bar. */
+export type DashNavData = {
+  items: { view: string; en: string; hi: string; icon: React.ReactNode }[];
+  active: string;
+  setActive: (v: string) => void;
+  extra: { en: string; hi: string; icon: React.ReactNode; toast?: string }[];
+  who?: { name: string; initials: string; role: { en: string; hi: string }; color: string };
+} | null;
+type DashNavCtx = { dashNav: DashNavData; setDashNav: (n: DashNavData) => void };
+const DashNavContext = createContext<DashNavCtx>({ dashNav: null, setDashNav: () => {} });
+export function useDashNav() {
+  return useContext(DashNavContext);
+}
+
 /* ---------------- Provider root ---------------- */
 export function Providers({ children }: { children: React.ReactNode }) {
+  const [dashNav, setDashNav] = useState<DashNavData>(null);
   const [lang, setLangState] = useState<Lang>("en");
   const [theme, setTheme] = useState<Theme>("light");
   const [toast, setToast] = useState<string | null>(null);
@@ -135,6 +153,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <LanguageContext.Provider value={{ lang, toggle: toggleLang, setLang }}>
       <ThemeContext.Provider value={{ theme, toggle: toggleTheme }}>
         <ToastContext.Provider value={{ show }}>
+         <DashNavContext.Provider value={{ dashNav, setDashNav }}>
           {children}
           <div className={"toast" + (toastVisible ? " show" : "")} role="status" aria-live="polite">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -142,6 +161,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             </svg>
             <span>{toast}</span>
           </div>
+         </DashNavContext.Provider>
         </ToastContext.Provider>
       </ThemeContext.Provider>
     </LanguageContext.Provider>

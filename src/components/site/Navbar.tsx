@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { useTheme, useAuth, T } from "@/lib/providers";
+import { useTheme, useAuth, useDashNav, useToast, T } from "@/lib/providers";
 import LangDropdown from "./LangDropdown";
 
 const LINKS = [
@@ -33,6 +33,8 @@ export default function Navbar() {
   const pathname = usePathname();
   const { toggle: toggleTheme, theme } = useTheme();
   const { session, logout } = useAuth();
+  const { dashNav } = useDashNav();
+  const { show } = useToast();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
@@ -88,6 +90,34 @@ export default function Navbar() {
         </div>
       </nav>
       <div className={"mobile-menu" + (open ? " open" : "")} onClick={() => setOpen(false)}>
+        {dashNav && dashNav.items.length > 0 && (
+          <div className="mm-dash">
+            <span className="mm-label">{dashNav.who?.name || "Dashboard"}</span>
+            {dashNav.items.map((n) => (
+              <a
+                key={n.view}
+                href={"#" + n.view}
+                className={"mm-item" + (dashNav.active === n.view ? " active" : "")}
+                onClick={(e) => { e.preventDefault(); dashNav.setActive(n.view); history.replaceState(null, "", "#" + n.view); setOpen(false); }}
+              >
+                {n.icon}
+                <span><T en={n.en} hi={n.hi} /></span>
+              </a>
+            ))}
+            {dashNav.extra.filter((a) => a.en.toLowerCase() !== "logout").map((a, i) => (
+              <a
+                key={"x" + i}
+                href="#"
+                className="mm-item"
+                onClick={(e) => { e.preventDefault(); if (a.toast) show(a.toast); setOpen(false); }}
+              >
+                {a.icon}
+                <span><T en={a.en} hi={a.hi} /></span>
+              </a>
+            ))}
+            <span className="mm-divider" />
+          </div>
+        )}
         {LINKS.concat(DASH).map((l) => (
           <Link key={l.href + l.en} href={l.href}>
             <T en={l.en} hi={l.hi} />

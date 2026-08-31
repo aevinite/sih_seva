@@ -1,6 +1,6 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { T, useLang } from "@/lib/providers";
+import { T, useLang, useDashNav } from "@/lib/providers";
 
 /* ---------------- Panel routing context ---------------- */
 type PanelCtx = { active: string; setActive: (v: string) => void };
@@ -35,6 +35,7 @@ export function DashboardShell({
 }) {
   const [active, setActive] = useState(nav[0]?.view ?? "");
   const { lang } = useLang();
+  const { setDashNav } = useDashNav();
 
   // when hash present on load, honour it
   useEffect(() => {
@@ -42,6 +43,14 @@ export function DashboardShell({
     if (h && nav.some((n) => n.view === h)) setActive(h);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // publish this dashboard's sections to the Navbar's mobile (three-dots) menu,
+  // so phones navigate from there instead of a separate horizontal bar
+  useEffect(() => {
+    setDashNav({ items: nav, active, setActive, extra: extraNav, who: { name: who.name, initials: who.initials, role: who.role, color: who.color } });
+    return () => setDashNav(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, lang]);
 
   // fix Chart.js sizing when a hidden view becomes visible
   useEffect(() => {
