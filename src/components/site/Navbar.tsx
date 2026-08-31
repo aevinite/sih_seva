@@ -22,8 +22,8 @@ export function BrandMark({ className = "brand-mark" }: { className?: string }) 
   return (
     <span className={className}>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-        <path strokeWidth="2.1" d="M12 2 4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6z" />
-        <path strokeWidth="2.4" d="M8.4 12l2.7 2.7 5.1-5.6" />
+        <path strokeWidth="2" d="M12 2.5 4.7 5.9v5.6c0 4.8 3.2 7.9 7.3 9.9 4.1-2 7.3-5.1 7.3-9.9V5.9z" />
+        <path strokeWidth="2.4" d="M8.5 12.3l2.6 2.6 4.7-5.2" />
       </svg>
     </span>
   );
