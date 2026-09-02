@@ -34,8 +34,23 @@ export function DashboardShell({
   children: React.ReactNode;
 }) {
   const [active, setActive] = useState(nav[0]?.view ?? "");
+  const [stack, setStack] = useState<string[]>([]);
   const { lang } = useLang();
   const { setDashNav } = useDashNav();
+
+  // Navigate to a section, remembering where we came from so Back works.
+  const go = (view: string) => {
+    if (view !== active) setStack([...stack, active]);
+    setActive(view);
+    if (typeof window !== "undefined") history.replaceState(null, "", "#" + view);
+  };
+  const goBack = () => {
+    if (!stack.length) return;
+    const prev = stack[stack.length - 1];
+    setStack(stack.slice(0, -1));
+    setActive(prev);
+    if (typeof window !== "undefined") history.replaceState(null, "", "#" + prev);
+  };
 
   // when hash present on load, honour it
   useEffect(() => {
@@ -47,10 +62,10 @@ export function DashboardShell({
   // publish this dashboard's sections to the Navbar's mobile (three-dots) menu,
   // so phones navigate from there instead of a separate horizontal bar
   useEffect(() => {
-    setDashNav({ items: nav, active, setActive, extra: extraNav, who: { name: who.name, initials: who.initials, role: who.role, color: who.color } });
+    setDashNav({ items: nav, active, setActive: go, extra: extraNav, who: { name: who.name, initials: who.initials, role: who.role, color: who.color } });
     return () => setDashNav(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, lang]);
+  }, [active, stack, lang]);
 
   // fix Chart.js sizing when a hidden view becomes visible
   useEffect(() => {
@@ -81,8 +96,7 @@ export function DashboardShell({
                 className={active === n.view ? "active" : ""}
                 onClick={(e) => {
                   e.preventDefault();
-                  setActive(n.view);
-                  history.replaceState(null, "", "#" + n.view);
+                  go(n.view);
                 }}
               >
                 {n.icon}
@@ -97,6 +111,12 @@ export function DashboardShell({
         </aside>
 
         <main className="dash-main">
+          {stack.length > 0 && (
+            <button type="button" className="btn-back" onClick={goBack}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+              <T en="Back" hi="वापस" />
+            </button>
+          )}
           <div className="dash-head between">
             <div>
               {eyebrow && <span className="eyebrow"><T en={eyebrow.en} hi={eyebrow.hi} /></span>}
