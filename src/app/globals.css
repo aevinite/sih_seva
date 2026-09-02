@@ -8,7 +8,11 @@
   --color-background: var(--background);
   --color-surface: var(--surface);
   --color-card: var(--card);
-  --color-muted: var(--muted);
+  /* NOTE: --color-muted / --color-accent are intentionally NOT mapped here.
+     They would make Tailwind generate `text-muted` / `text-accent` utilities
+     (in the utilities layer) that override our same-named custom classes,
+     turning muted text into the near-white surface colour. Use var(--muted)
+     / var(--accent) directly in CSS instead. */
   --color-muted-foreground: var(--muted-foreground);
   --color-foreground: var(--foreground);
   --color-border: var(--border);
@@ -19,7 +23,6 @@
   --color-primary-strong: var(--primary-strong);
   --color-primary-soft: var(--primary-soft);
   --color-primary-foreground: var(--primary-foreground);
-  --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
   --color-success: var(--success);
   --color-warning: var(--warning);
