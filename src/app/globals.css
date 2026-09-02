@@ -245,7 +245,7 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 700; line-height
   background: linear-gradient(135deg, var(--primary), var(--accent)); color: #04120f; flex: none;
   box-shadow: var(--shadow-glow);
 }
-.brand-mark svg { width: 26px; height: 26px; }
+.brand-mark svg { width: 22px; height: 22px; }
 .brand small { display: block; font-family: var(--font-body); font-weight: 500; font-size: .64rem; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.55); margin-top: -2px; }
 .nav-links { display: none; align-items: center; gap: 4px; }
 .nav-links a {
