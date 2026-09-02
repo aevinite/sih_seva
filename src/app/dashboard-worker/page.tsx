@@ -141,16 +141,16 @@ export default function WorkerDashboard() {
             {filteredReq.length === 0 && <p className="empty-state"><T en="No new job requests right now." hi="अभी कोई नया कार्य अनुरोध नहीं।" /></p>}
             {filteredReq.length > 0 && (
               <div className="table-wrap">
-                <table className="data">
+                <table className="data cards">
                   <thead><tr><th><T en="Service" hi="सेवा" /></th><th><T en="Location" hi="स्थान" /></th><th><T en="Schedule" hi="समय" /></th><th><T en="Payout" hi="भुगतान" /></th><th><T en="Action" hi="कार्रवाई" /></th></tr></thead>
                   <tbody>
                     {filteredReq.map((r) => { const w = whenOf(r); return (
                       <tr key={r.id}>
-                        <td><b>{r.service} {r.emergency && <span className="pill pill-danger" style={{ marginLeft: 4 }}>Emergency</span>}</b><div className="text-muted text-xs">{nameOf(r.customer) || "Customer"}</div></td>
-                        <td>{r.address || r.city || "—"}<div className="text-muted text-xs">{r.city}</div><DistTag b={r} /></td>
-                        <td>{w.day}<div className="text-muted text-xs">{w.time}</div></td>
-                        <td><b className="tnum">{inr(net(r))}</b></td>
-                        <td><div className="row-actions">
+                        <td data-label="Service"><b>{r.service} {r.emergency && <span className="pill pill-danger" style={{ marginLeft: 4 }}>Emergency</span>}</b><div className="text-muted text-xs">{nameOf(r.customer) || "Customer"}</div></td>
+                        <td data-label="Location">{r.address || r.city || "—"}<div className="text-muted text-xs">{r.city}</div><DistTag b={r} /></td>
+                        <td data-label="Schedule">{w.day}<div className="text-muted text-xs">{w.time}</div></td>
+                        <td data-label="Payout"><b className="tnum">{inr(net(r))}</b></td>
+                        <td data-label="Action" className="cell-action"><div className="row-actions">
                           <button className="btn btn-primary btn-sm" onClick={() => act(r.id, "accept")}><T en="Accept" hi="स्वीकारें" /></button>
                           <button className="btn btn-ghost btn-sm" onClick={() => act(r.id, "decline")}><T en="Decline" hi="अस्वीकारें" /></button>
                         </div></td>
@@ -170,16 +170,16 @@ export default function WorkerDashboard() {
             {schedule.length === 0 && <p className="empty-state"><T en="No accepted jobs yet — accept a request to see it here." hi="अभी कोई स्वीकृत कार्य नहीं।" /></p>}
             {schedule.length > 0 && (
               <div className="table-wrap">
-                <table className="data">
+                <table className="data cards">
                   <thead><tr><th><T en="Time" hi="समय" /></th><th><T en="Customer" hi="ग्राहक" /></th><th><T en="Service & Address" hi="सेवा व पता" /></th><th><T en="Status" hi="स्थिति" /></th><th><T en="Action" hi="कार्रवाई" /></th></tr></thead>
                   <tbody>
                     {schedule.map((j) => { const w = whenOf(j); const cn = nameOf(j.customer) || "Customer"; return (
                       <tr key={j.id}>
-                        <td><b>{w.day}</b><div className="text-muted text-xs">{w.time}</div></td>
-                        <td><div className="td-user"><span className="avatar" style={{ width: 32, height: 32, fontSize: ".75rem", background: grad(cn) }}>{iniOf(cn)}</span>{cn}</div></td>
-                        <td>{j.service}<div className="text-muted text-xs">{j.address || j.city || ""}</div><DistTag b={j} /></td>
-                        <td>{j.status === "in_progress" ? <StatusPill kind="warning">In progress</StatusPill> : <StatusPill kind="info">Confirmed</StatusPill>}</td>
-                        <td><button className="btn btn-primary btn-sm" onClick={() => act(j.id, "complete")}><T en="Mark complete" hi="पूर्ण करें" /></button></td>
+                        <td data-label="Time"><b>{w.day}</b><div className="text-muted text-xs">{w.time}</div></td>
+                        <td data-label="Customer"><div className="td-user"><span className="avatar" style={{ width: 32, height: 32, fontSize: ".75rem", background: grad(cn) }}>{iniOf(cn)}</span>{cn}</div></td>
+                        <td data-label="Service & Address">{j.service}<div className="text-muted text-xs">{j.address || j.city || ""}</div><DistTag b={j} /></td>
+                        <td data-label="Status">{j.status === "in_progress" ? <StatusPill kind="warning">In progress</StatusPill> : <StatusPill kind="info">Confirmed</StatusPill>}</td>
+                        <td data-label="Action" className="cell-action"><button className="btn btn-primary btn-sm" onClick={() => act(j.id, "complete")}><T en="Mark complete" hi="पूर्ण करें" /></button></td>
                       </tr>
                     ); })}
                   </tbody>
@@ -202,14 +202,14 @@ export default function WorkerDashboard() {
             {completed.length === 0 && <p className="empty-state"><T en="No completed jobs yet." hi="अभी कोई पूर्ण कार्य नहीं।" /></p>}
             {completed.length > 0 && (
               <div className="table-wrap">
-                <table className="data">
-                  <thead><tr><th>Date</th><th>Job</th><th>Gross</th><th>Comm.</th><th>Net</th><th>Status</th></tr></thead>
+                <table className="data cards">
+                  <thead><tr><th>Job</th><th>Date</th><th>Gross</th><th>Comm.</th><th>Net</th><th>Status</th></tr></thead>
                   <tbody>
                     {completed.map((b) => (
                       <tr key={b.id}>
-                        <td>{whenOf(b).day}</td><td>{b.service}</td>
-                        <td className="tnum">{inr(b.total)}</td><td className="tnum">{inr(Math.round(b.total * 0.08))}</td>
-                        <td className="tnum"><b>{inr(net(b))}</b></td><td><StatusPill kind="success">Paid</StatusPill></td>
+                        <td data-label="Job"><b>{b.service}</b></td><td data-label="Date">{whenOf(b).day}</td>
+                        <td data-label="Gross" className="tnum">{inr(b.total)}</td><td data-label="Commission" className="tnum">{inr(Math.round(b.total * 0.08))}</td>
+                        <td data-label="Net" className="tnum"><b>{inr(net(b))}</b></td><td data-label="Status"><StatusPill kind="success">Paid</StatusPill></td>
                       </tr>
                     ))}
                   </tbody>
