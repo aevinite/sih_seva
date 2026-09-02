@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2732" height="2732" viewBox="0 0 2732 2732">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8b6bff"/>
+      <stop offset="1" stop-color="#5a3ff0"/>
+    </linearGradient>
+  </defs>
+  <rect width="2732" height="2732" fill="url(#bg)"/>
+  <svg x="1156" y="1046" width="420" height="420" viewBox="0 0 24 24">
+    <path fill="#ffffff" d="M12 4.3 5.2 7.3v5.1c0 4.4 3 7.2 6.8 8.8 3.8-1.6 6.8-4.4 6.8-8.8V7.3z"/>
+    <path fill="none" stroke="#5a3ff0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M8.8 12.7l2.4 2.4 4.2-4.7"/>
+  </svg>
+  <text x="1366" y="1620" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, Roboto, system-ui, sans-serif" font-size="150" font-weight="700">AeviWork</text>
+  <text x="1366" y="1700" text-anchor="middle" fill="#ffffff" fill-opacity="0.8" font-family="Segoe UI, Roboto, system-ui, sans-serif" font-size="60" font-weight="500">Sahkar se Samriddhi</text>
+</svg>

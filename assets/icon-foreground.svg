@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Adaptive-icon foreground: white shield + mark kept inside the safe zone -->
+  <svg x="252" y="252" width="520" height="520" viewBox="0 0 24 24">
+    <path fill="#ffffff" d="M12 4.3 5.2 7.3v5.1c0 4.4 3 7.2 6.8 8.8 3.8-1.6 6.8-4.4 6.8-8.8V7.3z"/>
+    <path fill="none" stroke="#5a3ff0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M8.8 12.7l2.4 2.4 4.2-4.7"/>
+  </svg>
+</svg>
