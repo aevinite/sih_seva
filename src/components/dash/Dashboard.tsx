@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { T, useLang, useDashNav } from "@/lib/providers";
 
 /* ---------------- Panel routing context ---------------- */
@@ -33,24 +33,65 @@ export function DashboardShell({
   actions?: React.ReactNode;
   children: React.ReactNode;
 }) {
-  const [active, setActive] = useState(nav[0]?.view ?? "");
+  const home = nav[0]?.view ?? ""; // the panel's default/root section — its "home"
+  const [active, setActive] = useState(home);
   const [stack, setStack] = useState<string[]>([]);
   const { lang } = useLang();
   const { setDashNav } = useDashNav();
 
-  // Navigate to a section, remembering where we came from so Back works.
+  // Refs so the (native) hardware-back listener, registered once, always reads
+  // the latest state without being re-attached on every navigation.
+  const activeRef = useRef(active);
+  const stackRef = useRef(stack);
+  activeRef.current = active;
+  stackRef.current = stack;
+
+  const setHash = (v: string) => {
+    if (typeof window !== "undefined") history.replaceState(null, "", "#" + v);
+  };
+
+  // Navigate to a section. Going home resets history (no Back on home); revisiting
+  // an earlier section unwinds the stack to it; anything else pushes one step.
   const go = (view: string) => {
-    if (view !== active) setStack([...stack, active]);
+    const cur = activeRef.current;
+    if (view === cur) return;
+    if (view === home) {
+      setStack([]);
+    } else {
+      setStack((s) => {
+        const idx = s.indexOf(view);
+        return idx >= 0 ? s.slice(0, idx) : [...s, cur];
+      });
+    }
     setActive(view);
-    if (typeof window !== "undefined") history.replaceState(null, "", "#" + view);
+    setHash(view);
   };
   const goBack = () => {
-    if (!stack.length) return;
-    const prev = stack[stack.length - 1];
-    setStack(stack.slice(0, -1));
+    const s = stackRef.current;
+    if (!s.length) return;
+    const prev = s[s.length - 1];
+    setStack(s.slice(0, -1));
     setActive(prev);
-    if (typeof window !== "undefined") history.replaceState(null, "", "#" + prev);
+    setHash(prev);
   };
+
+  // Native (APK) hardware/gesture back mirrors the on-screen Back button:
+  // step back through sections, and exit the app when already on home.
+  useEffect(() => {
+    let remove: (() => void) | undefined;
+    (async () => {
+      const { Capacitor } = await import("@capacitor/core");
+      if (!Capacitor.isNativePlatform()) return;
+      const { App } = await import("@capacitor/app");
+      const handle = await App.addListener("backButton", () => {
+        if (stackRef.current.length > 0) goBack();
+        else App.exitApp();
+      });
+      remove = () => handle.remove();
+    })();
+    return () => remove?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // when hash present on load, honour it
   useEffect(() => {
@@ -111,7 +152,7 @@ export function DashboardShell({
         </aside>
 
         <main className="dash-main">
-          {stack.length > 0 && (
+          {stack.length > 0 && active !== home && (
             <button type="button" className="btn-back" onClick={goBack}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
               <T en="Back" hi="वापस" />
