@@ -357,17 +357,22 @@ export default function CustomerDashboard() {
         <View name="saved">
           <div className="grid grid-3">
             {saved.map((w) => (
-              <div className="card" key={w.id}>
-                <div className="row" style={{ gap: 12 }}>
-                  <span className="avatar" style={{ width: 52, height: 52, background: w.color }}>{w.ini}</span>
-                  <div>
-                    <b>{w.n}</b><div className="text-muted text-sm">{w.r}</div>
+              <div className="card worker-card" key={w.id} style={{ padding: 0 }}>
+                <div className="body">
+                  <div className="head">
+                    <span className="avatar" style={{ background: w.color }}>{w.ini}</span>
+                    <div className="flex-1">
+                      <h3 style={{ fontSize: "1rem" }}>{w.n}</h3>
+                      <span className="role">{w.r}</span>
+                    </div>
                     <span className="rating">{StarFill} {w.rate}</span>
                   </div>
                 </div>
-                <div className="row-actions mt-2" style={{ width: "100%" }}>
-                  <Link href="/booking" className="btn btn-primary btn-sm flex-1">Book</Link>
-                  <button className="btn btn-ghost btn-sm" onClick={() => { setSaved((s) => s.filter((x) => x.id !== w.id)); show("Removed from saved"); }}>Remove</button>
+                <div className="foot">
+                  <div className="row-actions" style={{ width: "100%", gap: 8 }}>
+                    <Link href="/booking" className="btn btn-primary btn-sm flex-1">Book</Link>
+                    <button className="btn btn-ghost btn-sm" onClick={() => { setSaved((s) => s.filter((x) => x.id !== w.id)); show("Removed from saved"); }}>Remove</button>
+                  </div>
                 </div>
               </div>
             ))}

@@ -501,21 +501,32 @@ p { text-wrap: pretty; }
    ============================================================ */
 .filter-bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 26px; }
 .search-box { flex: 1; min-width: 220px; }
-.worker-card { display: flex; flex-direction: column; gap: 0; overflow: hidden; padding: 0; }
-.worker-card .body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
-.worker-card .head { display: flex; gap: 14px; align-items: center; }
-.worker-card .head .avatar { width: 54px; height: 54px; font-size: 1.15rem; }
-.worker-card h3 { font-size: 1.05rem; }
-.worker-card .role { font-size: .86rem; color: var(--muted-foreground); }
-.worker-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: .84rem; color: var(--muted-foreground); }
-.worker-meta .m { display: flex; align-items: center; gap: 6px; }
-.worker-meta svg { width: 15px; height: 15px; color: var(--primary-strong); }
-.worker-card .foot { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-top: 1px solid var(--border); background: var(--muted); }
-.worker-card .price b { font-family: var(--font-display); font-size: 1.15rem; }
+/* ---- Worker card — premium, shared across customer panel, services & booking ---- */
+.worker-card { display: flex; flex-direction: column; gap: 0; overflow: hidden; padding: 0; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.worker-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: color-mix(in srgb, var(--primary) 38%, var(--border)); }
+.worker-card .body { padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 13px; }
+.worker-card .head { display: flex; gap: 13px; align-items: center; }
+.worker-card .head .avatar { width: 52px; height: 52px; font-size: 1.1rem; box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 12%, transparent), 0 8px 18px -10px rgba(0,0,0,.4); }
+.worker-card h3 { font-size: 1.05rem; font-weight: 700; letter-spacing: -.01em; line-height: 1.2; }
+.worker-card .role { font-size: .82rem; color: var(--muted-foreground); margin-top: 2px; }
+
+/* meta as tidy neutral chips */
+.worker-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: .8rem; }
+.worker-meta .m { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: var(--radius-full); background: var(--muted); color: var(--muted-foreground); font-weight: 500; }
+.worker-meta svg { width: 14px; height: 14px; color: var(--primary-strong); }
+
+/* footer — subtle divider + surface tint; price numeral emphasised */
+.worker-card .foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-top: 1px solid var(--border); background: color-mix(in srgb, var(--muted) 55%, var(--card)); }
+.worker-card .price { display: inline-flex; align-items: baseline; gap: 5px; }
+.worker-card .price b { font-family: var(--font-display); font-size: 1.22rem; color: var(--foreground); }
+
+/* rating / verified — base (used outside cards too) then soft-pill inside a card */
 .verified { display: inline-flex; align-items: center; gap: 4px; color: var(--success); font-size: .78rem; font-weight: 600; }
 .verified svg { width: 14px; height: 14px; }
 .rating { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; font-size: .86rem; }
 .rating svg { width: 15px; height: 15px; color: var(--accent); }
+.worker-card .rating { align-self: flex-start; gap: 5px; padding: 4px 9px; border-radius: var(--radius-full); background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--foreground); font-size: .8rem; font-weight: 700; }
+.worker-card .verified { gap: 5px; padding: 5px 10px; border-radius: var(--radius-full); background: color-mix(in srgb, var(--success) 14%, transparent); font-size: .75rem; font-weight: 700; }
 
 /* Map placeholder */
 .map-box { background: var(--muted); border: 1px solid var(--border); border-radius: var(--radius-lg); min-height: 260px; position: relative; overflow: hidden; display: grid; place-items: center; }
