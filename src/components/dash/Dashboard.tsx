@@ -100,6 +100,23 @@ export function DashboardShell({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Enter each dashboard scrolled to the very top. Client navigation (e.g. right
+  // after login) can carry a scroll offset that hides the page header ("Overview"
+  // + welcome line). Smooth-scroll is suppressed so there's no visible slow slide.
+  useEffect(() => {
+    const root = document.documentElement;
+    const toTop = () => {
+      const prev = root.style.scrollBehavior;
+      root.style.scrollBehavior = "auto";
+      window.scrollTo(0, 0);
+      root.style.scrollBehavior = prev;
+    };
+    toTop();
+    const raf = requestAnimationFrame(toTop); // beat any post-mount scroll restore
+    const tid = window.setTimeout(toTop, 80);
+    return () => { cancelAnimationFrame(raf); window.clearTimeout(tid); };
+  }, []);
+
   // publish this dashboard's sections to the Navbar's mobile (three-dots) menu,
   // so phones navigate from there instead of a separate horizontal bar
   useEffect(() => {
