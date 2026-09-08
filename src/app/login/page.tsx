@@ -5,83 +5,8 @@ import { useRouter } from "next/navigation";
 import { T, useT, useTheme, useLang, useToast, useAuth } from "@/lib/providers";
 import LangDropdown from "@/components/site/LangDropdown";
 
-type Role = "customer" | "worker" | "federation";
-
-const ROLES: {
-  key: Role;
-  target: string;
-  icon: React.ReactNode;
-  labelEn: string;
-  labelHi: string;
-  subEn: string;
-  subHi: string;
-  ctaEn: string;
-  ctaHi: string;
-}[] = [
-  {
-    key: "customer",
-    target: "/dashboard-customer",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M3 10.5 12 3l9 7.5" />
-        <path d="M5 9.5V21h14V9.5" />
-        <path d="M9 21v-6h6v6" />
-      </svg>
-    ),
-    labelEn: "Customer",
-    labelHi: "ग्राहक",
-    subEn: "Book services",
-    subHi: "सेवाएँ बुक करें",
-    ctaEn: "Sign in to Customer portal",
-    ctaHi: "ग्राहक पोर्टल में साइन इन करें",
-  },
-  {
-    key: "worker",
-    target: "/dashboard-worker",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4l-2.3 2.3-2-2z" />
-      </svg>
-    ),
-    labelEn: "Worker",
-    labelHi: "कार्यकर्ता",
-    subEn: "Find jobs",
-    subHi: "काम खोजें",
-    ctaEn: "Sign in to Worker portal",
-    ctaHi: "कार्यकर्ता पोर्टल में साइन इन करें",
-  },
-  {
-    key: "federation",
-    target: "/dashboard-admin",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <rect x="3" y="3" width="7" height="9" />
-        <rect x="14" y="3" width="7" height="5" />
-        <rect x="14" y="12" width="7" height="9" />
-        <rect x="3" y="16" width="7" height="5" />
-      </svg>
-    ),
-    labelEn: "Federation",
-    labelHi: "फेडरेशन",
-    subEn: "Admin panel",
-    subHi: "एडमिन पैनल",
-    ctaEn: "Sign in to Federation panel",
-    ctaHi: "फेडरेशन पैनल में साइन इन करें",
-  },
-];
-
-// Demo credentials (client-side, for hackathon access)
-const DEMO: Record<string, { pw: string; target: string; role: string; name: string }> = {
-  "customer@aeviwork.in": { pw: "demo1234", target: "/dashboard-customer", role: "customer", name: "Aarav Nair" },
-  "worker@aeviwork.in": { pw: "demo1234", target: "/dashboard-worker", role: "worker", name: "Ramesh Solanki" },
-  "admin@aeviwork.in": { pw: "demo1234", target: "/dashboard-admin", role: "federation", name: "Dinesh Kapoor" },
-  "superadmin@aeviwork.in": { pw: "aevinite@2026", target: "/aevinite", role: "superadmin", name: "Super Admin" },
-};
-const ROLE_EMAIL: Record<Role, string> = {
-  customer: "customer@aeviwork.in",
-  worker: "worker@aeviwork.in",
-  federation: "admin@aeviwork.in",
-};
+// Demo credentials (client-side, for hackathon access) — tap-to-fill helpers.
+// Login itself is role-agnostic: the backend detects the role from the account.
 const DEMO_LIST = [
   { label: "Customer", labelHi: "ग्राहक", em: "customer@aeviwork.in", pw: "demo1234" },
   { label: "Worker", labelHi: "कार्यकर्ता", em: "worker@aeviwork.in", pw: "demo1234" },
@@ -97,7 +22,6 @@ const brandPath = (
 );
 
 export default function LoginPage() {
-  const [role, setRole] = useState<Role>("customer");
   const [email, setEmail] = useState("customer@aeviwork.in");
   const [password, setPassword] = useState("demo1234");
   const t = useT();
@@ -106,15 +30,6 @@ export default function LoginPage() {
   const { show } = useToast();
   const { login } = useAuth();
   const router = useRouter();
-
-  const current = ROLES.find((r) => r.key === role)!;
-
-  const pickRole = (key: Role) => {
-    setRole(key);
-    const em = ROLE_EMAIL[key];
-    setEmail(em);
-    setPassword(DEMO[em].pw);
-  };
 
   const targetFor = (role: string) =>
     role === "worker" ? "/dashboard-worker"
@@ -163,15 +78,6 @@ export default function LoginPage() {
   .auth-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:26px; }
   .auth-top .m-brand { display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; }
   .auth-top .m-brand .brand-mark { width:34px;height:34px; }
-  .role-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:22px; }
-  .role-tab { border:1px solid var(--border); background:var(--surface); border-radius:var(--radius); padding:12px 8px; text-align:center; cursor:pointer; transition:.15s; display:flex; flex-direction:column; align-items:center; gap:7px; }
-  .role-tab:hover { border-color:var(--primary); }
-  .role-tab.active { border-color:var(--primary); background:var(--primary-soft); box-shadow:0 0 0 3px var(--ring); }
-  .role-tab .ic { width:34px;height:34px;border-radius:10px;background:var(--muted);color:var(--muted-foreground);display:grid;place-items:center; }
-  .role-tab.active .ic { background:var(--primary); color:var(--primary-foreground); }
-  .role-tab .ic svg { width:18px;height:18px; }
-  .role-tab b { font-size:.82rem; }
-  .role-tab span { font-size:.68rem; color:var(--muted-foreground); }
   .auth-h { font-size:1.5rem; }
   .auth-sub { color:var(--muted-foreground); font-size:.92rem; margin-top:4px; margin-bottom:22px; }
   .auth-fields { display:flex; flex-direction:column; gap:16px; }
@@ -270,30 +176,8 @@ export default function LoginPage() {
             <T en="Welcome back" hi="वापसी पर स्वागत है" />
           </h2>
           <p className="auth-sub">
-            <T en="Choose your portal and sign in to continue." hi="अपना पोर्टल चुनें और जारी रखने के लिए साइन इन करें।" />
+            <T en="Sign in to continue — we'll take you to the right portal automatically." hi="जारी रखने के लिए साइन इन करें — हम आपको स्वतः सही पोर्टल पर ले जाएँगे।" />
           </p>
-
-          {/* Role selector */}
-          <div className="role-tabs">
-            {ROLES.map((r) => (
-              <div
-                key={r.key}
-                className={"role-tab" + (role === r.key ? " active" : "")}
-                onClick={() => pickRole(r.key)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && pickRole(r.key)}
-              >
-                <span className="ic">{r.icon}</span>
-                <b>
-                  <T en={r.labelEn} hi={r.labelHi} />
-                </b>
-                <span>
-                  <T en={r.subEn} hi={r.subHi} />
-                </span>
-              </div>
-            ))}
-          </div>
 
           <form className="auth-fields" onSubmit={onSubmit}>
             <div className="field">
@@ -340,7 +224,7 @@ export default function LoginPage() {
               </span>
             </div>
             <button type="submit" className="btn btn-primary btn-lg w-full" style={{ width: "100%" }}>
-              <T en={current.ctaEn} hi={current.ctaHi} />
+              <T en="Sign in" hi="साइन इन करें" />
             </button>
           </form>
 
