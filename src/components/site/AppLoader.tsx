@@ -49,6 +49,15 @@ export default function AppLoader() {
 
   if (gone) return null;
 
+  return <LoaderScreen hidden={hidden} />;
+}
+
+/**
+ * The shared branded loading screen — full-screen purple with the shield that
+ * draws itself. Reused by AuthGate so its "reading session" state looks identical
+ * to the boot loader (one seamless loader, no white flash).
+ */
+export function LoaderScreen({ hidden = false }: { hidden?: boolean }) {
   return (
     <div className={"app-loader" + (hidden ? " hide" : "")} role="status" aria-label="Loading AeviWork">
       <div className="app-loader-mark">
