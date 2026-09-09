@@ -13,16 +13,20 @@ import {
 } from "@/components/dash/Dashboard";
 import { T, useT, useToast } from "@/lib/providers";
 
-/* Service categories shown to the customer (no graphs in this panel) */
-const CATEGORIES = [
-  { emoji: "⚡", cls: "", en: "Electrician", hi: "इलेक्ट्रीशियन", rate: "₹299+" },
-  { emoji: "🔧", cls: "info", en: "Plumber", hi: "प्लंबर", rate: "₹249+" },
-  { emoji: "🪚", cls: "amber", en: "Carpenter", hi: "बढ़ई", rate: "₹399+" },
-  { emoji: "🎨", cls: "success", en: "Painter", hi: "पेंटर", rate: "₹499+" },
-  { emoji: "🧹", cls: "", en: "Cleaner", hi: "सफाईकर्मी", rate: "₹199+" },
-  { emoji: "👶", cls: "amber", en: "Caregiver", hi: "देखभालकर्ता", rate: "₹599+" },
-  { emoji: "🚗", cls: "info", en: "Driver", hi: "ड्राइवर", rate: "₹349+" },
-  { emoji: "🌿", cls: "success", en: "Gardener", hi: "माली", rate: "₹299+" },
+/* Service categories shown to the customer — clean line icons (no emojis),
+   rendered as tap-to-filter tiles. `en` must match the worker's skill value. */
+const CatIc = ({ children }: { children: React.ReactNode }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{children}</svg>
+);
+const CATEGORIES: { en: string; hi: string; icon: React.ReactNode }[] = [
+  { en: "Electrician", hi: "इलेक्ट्रीशियन", icon: <CatIc><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></CatIc> },
+  { en: "Plumber", hi: "प्लंबर", icon: <CatIc><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4l-2.3 2.3-2-2z" /></CatIc> },
+  { en: "Carpenter", hi: "बढ़ई", icon: <CatIc><path d="M21.3 15.3 8.7 2.7a1 1 0 0 0-1.4 0L2.7 7.3a1 1 0 0 0 0 1.4l12.6 12.6a1 1 0 0 0 1.4 0l4.6-4.6a1 1 0 0 0 0-1.4Z" /><path d="m14.5 12.5 2-2" /><path d="m11.5 9.5 2-2" /><path d="m8.5 6.5 2-2" /><path d="m17.5 15.5 2-2" /></CatIc> },
+  { en: "Painter", hi: "पेंटर", icon: <CatIc><rect x="2" y="3" width="16" height="6" rx="2" /><path d="M10 15v-2a2 2 0 0 1 2-2h6a2 2 0 0 0 2-2V6" /><rect x="8" y="15" width="4" height="6" rx="1" /></CatIc> },
+  { en: "Cleaner", hi: "सफाईकर्मी", icon: <CatIc><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3z" /></CatIc> },
+  { en: "Caregiver", hi: "देखभालकर्ता", icon: <CatIc><path d="M12 21s-7-4.5-7-11a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 6.5-7 11-7 11z" /></CatIc> },
+  { en: "Driver", hi: "ड्राइवर", icon: <CatIc><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2" /><circle cx="6.5" cy="16.5" r="2.5" /><circle cx="16.5" cy="16.5" r="2.5" /></CatIc> },
+  { en: "Gardener", hi: "माली", icon: <CatIc><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" /><path d="M2 21c0-3 1.85-5.36 5.08-6" /></CatIc> },
 ];
 
 /* ---------- icons ---------- */
@@ -203,12 +207,29 @@ export default function CustomerDashboard() {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m21 21-4-4" /></svg>
               <input className="input" value={wq} onChange={(e) => setWq(e.target.value)} placeholder={t("Search by specialty or name — e.g. Electrician, Ramesh…", "विशेषता या नाम से खोजें — जैसे इलेक्ट्रीशियन, रमेश…")} />
             </div>
-            <div className="chip-select" style={{ marginBottom: 18 }}>
-              <span className={"chip" + (cat === "All" ? " active" : "")} onClick={() => setCat("All")}><T en="All" hi="सभी" /></span>
-              {CATEGORIES.map((c) => (
-                <span key={c.en} className={"chip" + (cat === c.en ? " active" : "")} onClick={() => setCat(c.en)}>{c.emoji} <T en={c.en} hi={c.hi} /></span>
-              ))}
+            <div className="cat-grid" role="group" aria-label="Filter by service">
+              {CATEGORIES.map((c) => {
+                const on = cat === c.en;
+                return (
+                  <button
+                    type="button"
+                    key={c.en}
+                    className={"cat-tile" + (on ? " active" : "")}
+                    aria-pressed={on}
+                    onClick={() => setCat(on ? "All" : c.en)}
+                  >
+                    <span className="cat-ic">{c.icon}</span>
+                    <b><T en={c.en} hi={c.hi} /></b>
+                  </button>
+                );
+              })}
             </div>
+            {cat !== "All" && (
+              <button type="button" className="btn btn-ghost btn-sm" style={{ marginTop: 12 }} onClick={() => setCat("All")}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                <T en="Show all services" hi="सभी सेवाएँ दिखाएँ" />
+              </button>
+            )}
             <p className="text-muted text-sm" style={{ marginBottom: 12 }}>
               {anyDist
                 ? t(`⭐ Recommended near you — nearest first · ${nearWorkers.length} verified worker(s) within 10 km`, `⭐ आपके पास अनुशंसित — निकटतम पहले · 10 किमी के भीतर ${nearWorkers.length} सत्यापित कार्यकर्ता`)

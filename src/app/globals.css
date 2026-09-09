@@ -530,6 +530,27 @@ p { text-wrap: pretty; }
 .worker-card .rating { align-self: flex-start; gap: 5px; padding: 4px 9px; border-radius: var(--radius-full); background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--foreground); font-size: .8rem; font-weight: 700; }
 .worker-card .verified { gap: 5px; padding: 5px 10px; border-radius: var(--radius-full); background: color-mix(in srgb, var(--success) 14%, transparent); font-size: .75rem; font-weight: 700; }
 
+/* ---- Service category tiles (customer overview filter) ---- */
+.cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.cat-tile {
+  display: flex; flex-direction: column; align-items: center; gap: 9px;
+  padding: 15px 8px 13px; border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface); cursor: pointer;
+  transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+.cat-tile:hover { border-color: color-mix(in srgb, var(--primary) 50%, var(--border)); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+.cat-tile.active { border-color: var(--primary); background: var(--primary-soft); box-shadow: 0 0 0 3px var(--ring); }
+.cat-tile .cat-ic {
+  width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center;
+  background: var(--muted); color: var(--primary-strong);
+  transition: background .15s ease, color .15s ease;
+}
+.cat-tile.active .cat-ic { background: var(--primary); color: var(--primary-foreground); }
+.cat-tile .cat-ic svg { width: 21px; height: 21px; }
+.cat-tile b { font-size: .82rem; font-weight: 600; color: var(--foreground); }
+@media (max-width: 900px) { .cat-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 560px) { .cat-grid { grid-template-columns: repeat(2, 1fr); } }
+
 /* Map placeholder */
 .map-box { background: var(--muted); border: 1px solid var(--border); border-radius: var(--radius-lg); min-height: 260px; position: relative; overflow: hidden; display: grid; place-items: center; }
 .map-box .grid-lines { position: absolute; inset: 0; background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px); background-size: 34px 34px; opacity: .5; }
