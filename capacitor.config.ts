@@ -25,8 +25,11 @@ const config: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 1600,
-      launchAutoHide: true,
+      launchShowDuration: 3000,
+      // Keep the native splash up until the web app mounts and calls
+      // SplashScreen.hide() — hands off seamlessly to the animated web loader
+      // instead of flashing a blank screen. (Requires an APK rebuild to apply.)
+      launchAutoHide: false,
       backgroundColor: "#7c5cff",
       androidScaleType: "CENTER_CROP",
       showSpinner: false,

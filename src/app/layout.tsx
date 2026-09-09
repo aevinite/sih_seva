@@ -3,6 +3,7 @@ import "./globals.css";
 import { Providers } from "@/lib/providers";
 import AuthGate from "@/components/site/AuthGate";
 import GoogleTranslate from "@/components/site/GoogleTranslate";
+import AppLoader from "@/components/site/AppLoader";
 
 export const metadata: Metadata = {
   title: "AeviWork — Cooperative Gig Services Platform",
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: noFlash }} />
       </head>
       <body suppressHydrationWarning>
+        <AppLoader />
         <Providers>
           <AuthGate>{children}</AuthGate>
         </Providers>
