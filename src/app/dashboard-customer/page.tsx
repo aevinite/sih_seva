@@ -188,7 +188,7 @@ export default function CustomerDashboard() {
         nav={nav}
         extraNav={extraNav}
         sideLabel={{ en: "Account", hi: "खाता" }}
-        subtitle={{ en: "Welcome back, Aarav — here's what's happening with your services.", hi: "वापसी पर स्वागत है, आरव — आपकी सेवाओं का सारांश।" }}
+        subtitle={{ en: "Welcome back, Aarav", hi: "वापसी पर स्वागत है, आरव" }}
         actions={<Link href="/booking" className="btn btn-primary hide-mobile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg> <T en="Book new service" hi="नई सेवा" /></Link>}
       >
         {/* OVERVIEW */}
