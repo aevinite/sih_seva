@@ -607,8 +607,18 @@ p { text-wrap: pretty; }
 .dash-grid { display: grid; gap: 18px; grid-template-columns: 1fr; }
 @media (min-width: 1100px) { .dash-grid.two { grid-template-columns: 1.4fr 1fr; } }
 .panel { padding: 22px; }
-/* Overview sections rendered flat on the page background — no card "box in a box" */
-.panel-open { background: transparent; border: 0; box-shadow: none; padding: 0; }
+
+/* Dashboards: panels render flat on the page background (no card-in-a-card)
+   across every panel app-wide — EXCEPT panels holding a data table or chart,
+   which keep their card frame for readability. */
+.card.panel { background: transparent; border: 0; box-shadow: none; padding: 0; }
+.card.panel:has(.table-wrap),
+.card.panel:has(.chart-wrap),
+.card.panel:has(table),
+.card.panel:has(canvas) {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); padding: 22px;
+}
 .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; gap: 10px; flex-wrap: wrap; }
 .panel-head h3 { font-size: 1.05rem; }
 .chart-wrap { position: relative; height: 280px; }

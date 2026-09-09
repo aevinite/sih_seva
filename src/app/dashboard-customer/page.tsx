@@ -198,7 +198,7 @@ export default function CustomerDashboard() {
         {/* OVERVIEW */}
         <View name="overview">
           {/* Marketplace — search + categories + all workers by specialty */}
-          <div className="panel-open">
+          <div className="card panel">
             <div className="panel-head">
               <h3><T en="Find & book a verified worker" hi="सत्यापित कार्यकर्ता खोजें व बुक करें" /></h3>
               <Link href="/services" className="link"><T en="Full directory →" hi="पूरी निर्देशिका →" /></Link>
@@ -272,7 +272,7 @@ export default function CustomerDashboard() {
 
           {/* Active bookings + Offers (no graphs) */}
           <div className="dash-grid two mt-3">
-            <div className="panel-open">
+            <div className="card panel">
               <div className="panel-head"><h3><T en="Your active bookings" hi="आपकी सक्रिय बुकिंग" /></h3></div>
               {upcoming.length === 0 && <p className="empty-state"><T en="No active bookings. Book a service above." hi="कोई सक्रिय बुकिंग नहीं। ऊपर से सेवा बुक करें।" /></p>}
               {upcoming.map((b) => (
@@ -282,7 +282,7 @@ export default function CustomerDashboard() {
                 </div>
               ))}
             </div>
-            <div className="panel-open">
+            <div className="card panel">
               <div className="panel-head"><h3><T en="Offers & benefits" hi="ऑफ़र व लाभ" /></h3></div>
               <ul className="check-list" style={{ marginTop: 0 }}>
                 {[
