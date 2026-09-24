@@ -57,24 +57,28 @@ export default function LoginPage() {
       <style
         dangerouslySetInnerHTML={{
           __html: `
-  .auth { min-height: 100vh; display: grid; grid-template-columns: 1fr; }
-  @media (min-width: 940px) { .auth { grid-template-columns: 1.05fr 1fr; } }
-  .auth-brand { position: relative; overflow: hidden; background: var(--ink); color: var(--ink-foreground); padding: clamp(28px,5vw,56px); display: none; flex-direction: column; }
+  .auth { min-height: 100dvh; display: grid; grid-template-columns: 1fr; }
+  @media (min-width: 940px) { .auth { grid-template-columns: 1.05fr 1fr; height: 100dvh; } }
+  .auth-brand { position: relative; overflow: hidden; background: var(--ink); color: var(--ink-foreground); padding: clamp(32px,4vw,56px); display: none; flex-direction: column; }
   @media (min-width: 940px) { .auth-brand { display: flex; } }
   .auth-brand::before { content:""; position:absolute; top:-15%; right:-12%; width:520px; height:520px; border-radius:50%; background:radial-gradient(circle,rgba(124,92,255,.55),transparent 62%); filter:blur(20px); }
   .auth-brand::after { content:""; position:absolute; bottom:-20%; left:-10%; width:420px; height:420px; border-radius:50%; background:radial-gradient(circle,rgba(34,211,238,.25),transparent 64%); filter:blur(18px); }
-  .auth-brand > * { position: relative; }
-  .auth-brand .head { display:flex; align-items:center; gap:11px; color:#fff; font-family:var(--font-display); font-weight:700; font-size:1.15rem; }
+  .auth-brand > * { position: relative; z-index: 1; }
+  .auth-brand .head { display:flex; align-items:center; gap:11px; color:#fff; font-family:var(--font-display); font-weight:700; font-size:1.15rem; flex:none; }
   .auth-brand .head small { display:block; font-family:var(--font-body); font-weight:500; font-size:.64rem; letter-spacing:.16em; text-transform:uppercase; color:rgba(255,255,255,.55); margin-top:-2px; }
-  .auth-brand h1 { color:#fff; font-size:clamp(1.9rem,3.4vw,2.7rem); margin-top:auto; }
+  /* Copy block is vertically centered between the logo (top) and the footnote (bottom); never pushed off-screen. */
+  .auth-brand .brand-copy { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; justify-content:center; padding:28px 0; }
+  .auth-brand h1 { color:#fff; font-size:clamp(1.75rem,2.9vw,2.5rem); line-height:1.12; }
   .auth-brand p { color:rgba(233,245,241,.78); max-width:440px; margin-top:14px; }
-  .auth-brand .points { display:grid; gap:14px; margin-top:28px; }
+  .auth-brand .points { display:grid; gap:13px; margin-top:26px; }
   .auth-brand .points li { display:flex; gap:12px; align-items:flex-start; list-style:none; }
   .auth-brand .points .t { width:26px;height:26px;border-radius:50%;background:rgba(124,92,255,.22);color:#c9bcff;display:grid;place-items:center;flex:none;margin-top:2px; }
   .auth-brand .points svg { width:15px;height:15px; }
-  .auth-brand .foot-note { margin-top:34px; padding-top:22px; border-top:1px solid rgba(255,255,255,.12); font-size:.82rem; color:rgba(233,245,241,.55); }
-  .auth-form { padding: clamp(24px,5vw,52px); display:flex; flex-direction:column; justify-content:center; background:var(--background); }
-  .auth-inner { width:100%; max-width:420px; margin-inline:auto; }
+  .auth-brand .foot-note { flex:none; padding-top:22px; border-top:1px solid rgba(255,255,255,.12); font-size:.82rem; color:rgba(233,245,241,.55); }
+  /* Form column: centered when it fits, scrolls internally only when taller than the viewport. */
+  .auth-form { padding: clamp(24px,5vw,52px); display:flex; flex-direction:column; background:var(--background); }
+  @media (min-width: 940px) { .auth-form { overflow-y: auto; } }
+  .auth-inner { width:100%; max-width:420px; margin:auto; padding-block:6px; }
   .auth-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:26px; }
   .auth-top .m-brand { display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; }
   .auth-top .m-brand .brand-mark { width:34px;height:34px; }
@@ -111,33 +115,35 @@ export default function LoginPage() {
             AeviWork<small>Sahkar se Samriddhi</small>
           </span>
         </Link>
-        <h1 className="balance">
-          <T en="One cooperative platform. Three powerful portals." hi="एक सहकारी मंच। तीन शक्तिशाली पोर्टल।" />
-        </h1>
-        <p className="pretty">
-          <T
-            en="Sign in to book trusted services, manage your work and earnings, or run your federation with AI-driven insights."
-            hi="भरोसेमंद सेवाएँ बुक करने, अपना काम और आय प्रबंधित करने, या AI अंतर्दृष्टि के साथ अपना फेडरेशन चलाने के लिए साइन इन करें।"
-          />
-        </p>
-        <ul className="points">
-          {[
-            { en: "Verified, welfare-protected professionals", hi: "सत्यापित, कल्याण-संरक्षित पेशेवर" },
-            { en: "Fair wages — 92% earnings to workers", hi: "उचित वेतन — 92% आय कार्यकर्ताओं को" },
-            { en: "AI demand forecasting & workforce allocation", hi: "AI मांग पूर्वानुमान और कार्यबल आवंटन" },
-          ].map((p) => (
-            <li key={p.en}>
-              <span className="t">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                  <path d="M20 6L9 17l-5-5" />
-                </svg>
-              </span>
-              <span>
-                <T en={p.en} hi={p.hi} />
-              </span>
-            </li>
-          ))}
-        </ul>
+        <div className="brand-copy">
+          <h1 className="balance">
+            <T en="One cooperative platform. Three powerful portals." hi="एक सहकारी मंच। तीन शक्तिशाली पोर्टल।" />
+          </h1>
+          <p className="pretty">
+            <T
+              en="Sign in to book trusted services, manage your work and earnings, or run your federation with AI-driven insights."
+              hi="भरोसेमंद सेवाएँ बुक करने, अपना काम और आय प्रबंधित करने, या AI अंतर्दृष्टि के साथ अपना फेडरेशन चलाने के लिए साइन इन करें।"
+            />
+          </p>
+          <ul className="points">
+            {[
+              { en: "Verified, welfare-protected professionals", hi: "सत्यापित, कल्याण-संरक्षित पेशेवर" },
+              { en: "Fair wages — 92% earnings to workers", hi: "उचित वेतन — 92% आय कार्यकर्ताओं को" },
+              { en: "AI demand forecasting & workforce allocation", hi: "AI मांग पूर्वानुमान और कार्यबल आवंटन" },
+            ].map((p) => (
+              <li key={p.en}>
+                <span className="t">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                    <path d="M20 6L9 17l-5-5" />
+                  </svg>
+                </span>
+                <span>
+                  <T en={p.en} hi={p.hi} />
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
         <p className="foot-note">© 2026 AeviWork · Smart India Hackathon · PS 26089 · Ministry of Cooperation / NCCT</p>
       </aside>
 

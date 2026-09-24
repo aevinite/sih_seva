@@ -46,8 +46,8 @@ export default function SignupPage() {
   return (
     <div className="su-wrap">
       <style dangerouslySetInnerHTML={{ __html: `
-        .su-wrap{ min-height:100vh; display:grid; place-items:center; padding:24px 16px; background:var(--background); position:relative; overflow:hidden; }
-        .su-wrap::before{ content:""; position:absolute; top:-20%; right:-10%; width:520px;height:520px;border-radius:50%; background:radial-gradient(circle,rgba(124,92,255,.28),transparent 62%); filter:blur(20px); }
+        .su-wrap{ min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:clamp(24px,5vh,56px) 16px; background:var(--background); position:relative; overflow-x:hidden; }
+        .su-wrap::before{ content:""; position:absolute; top:-20%; right:-10%; width:520px;height:520px;border-radius:50%; background:radial-gradient(circle,rgba(124,92,255,.28),transparent 62%); filter:blur(20px); pointer-events:none; }
         .su-card{ position:relative; width:100%; max-width:460px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); padding:clamp(22px,4vw,34px); }
         .su-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
         .su-brand{ display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; }
