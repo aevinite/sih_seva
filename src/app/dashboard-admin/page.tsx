@@ -1,6 +1,5 @@
 "use client";
 import { useMemo, useState } from "react";
-import Navbar from "@/components/site/Navbar";
 import {
   DashboardShell,
   View,
@@ -30,15 +29,18 @@ const I = {
   star: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l2.5 6.5L21 9l-5 4.5L17.5 20 12 16.5 6.5 20 8 13.5 3 9l6.5-.5z" /></svg>,
 };
 
+const G_OPERATE = { en: "Operate", hi: "संचालन" };
+const G_MANAGE = { en: "Manage", hi: "प्रबंधन" };
+const G_PLATFORM = { en: "Platform", hi: "प्लेटफ़ॉर्म" };
 const NAV: NavItem[] = [
-  { view: "overview", en: "Overview", hi: "अवलोकन", title: "Overview", icon: I.grid },
-  { view: "forecasting", en: "Demand Forecasting", hi: "मांग पूर्वानुमान", title: "AI Demand Forecasting", icon: I.chart },
-  { view: "allocation", en: "Workforce Allocation", hi: "कार्यबल आवंटन", title: "AI Workforce Allocation", icon: I.users },
-  { view: "societies", en: "Societies", hi: "समितियाँ", title: "Cooperative Societies", icon: I.bank },
-  { view: "workers", en: "Workers", hi: "कार्यकर्ता", title: "Workers & Verification", icon: I.worker },
-  { view: "bookings", en: "Bookings", hi: "बुकिंग", title: "Bookings", icon: I.cal },
-  { view: "welfare", en: "Welfare Fund", hi: "कल्याण कोष", title: "Welfare Fund", icon: I.shield },
-  { view: "reports", en: "Reports", hi: "रिपोर्ट", title: "Reports & Exports", icon: I.doc },
+  { view: "overview", en: "Overview", hi: "अवलोकन", title: "Overview", icon: I.grid, group: G_OPERATE },
+  { view: "forecasting", en: "Demand Forecasting", hi: "मांग पूर्वानुमान", title: "AI Demand Forecasting", icon: I.chart, group: G_OPERATE },
+  { view: "allocation", en: "Workforce Allocation", hi: "कार्यबल आवंटन", title: "AI Workforce Allocation", icon: I.users, group: G_OPERATE },
+  { view: "societies", en: "Societies", hi: "समितियाँ", title: "Cooperative Societies", icon: I.bank, group: G_MANAGE },
+  { view: "workers", en: "Workers", hi: "कार्यकर्ता", title: "Workers & Verification", icon: I.worker, group: G_MANAGE },
+  { view: "bookings", en: "Bookings", hi: "बुकिंग", title: "Bookings", icon: I.cal, group: G_MANAGE },
+  { view: "welfare", en: "Welfare Fund", hi: "कल्याण कोष", title: "Welfare Fund", icon: I.shield, group: G_PLATFORM },
+  { view: "reports", en: "Reports", hi: "रिपोर्ट", title: "Reports & Exports", icon: I.doc, group: G_PLATFORM },
 ];
 const EXTRA: ActionItem[] = [
   { en: "Settings", hi: "सेटिंग्स", icon: I.gear, toast: "Settings saved" },
@@ -267,12 +269,16 @@ function ClaimsTable() {
 }
 
 /* ---------------- KPI helpers ---------------- */
-function Kpi({ chip, icon, trend, val, en, hi }: { chip: string; icon: React.ReactNode; trend?: string; val: string; en: string; hi: string }) {
+/** Aevidine-style stat strip: one bordered container, cells split by dividers. */
+function KpiStrip({ items }: { items: { val: string; en: string; hi: string; trend?: string }[] }) {
   return (
-    <div className="card kpi">
-      <div className="top"><span className={"icon-chip " + chip}>{icon}</span>{trend && <span className="trend up">▲ {trend}</span>}</div>
-      <div className="val tnum">{val}</div>
-      <div className="lbl"><T en={en} hi={hi} /></div>
+    <div className="kpi-strip">
+      {items.map((k) => (
+        <div className="kpi-cell" key={k.en}>
+          <span className="kpi-lbl"><T en={k.en} hi={k.hi} /></span>
+          <div className="kpi-val tnum">{k.val}{k.trend && <span className="trend up">▲ {k.trend}</span>}</div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -303,8 +309,9 @@ export default function FederationAdmin() {
 
   return (
     <>
-      <Navbar />
       <DashboardShell
+        variant="admin"
+        brand={{ name: "AeviWork", tagline: { en: "Platform admin", hi: "प्लेटफ़ॉर्म एडमिन" }, mark: I.shield }}
         who={{ initials: "DK", name: "Dinesh Kapoor", role: { en: "Federation Admin · Rajasthan", hi: "फेडरेशन एडमिन · राजस्थान" }, color: "linear-gradient(135deg,#60a5fa,#2563eb)" }}
         nav={NAV}
         extraNav={EXTRA}
@@ -324,18 +331,18 @@ export default function FederationAdmin() {
       >
         {/* OVERVIEW */}
         <View name="overview">
-          <div className="kpi-grid">
-            <Kpi chip="" icon={I.worker} trend="4.2%" val="12,540" en="Total workers" hi="कुल कार्यकर्ता" />
-            <Kpi chip="info" icon={I.bank} trend="2" val="42" en="Active societies" hi="सक्रिय समितियाँ" />
-            <Kpi chip="amber" icon={I.cal} trend="12%" val="18,320" en="Bookings this month" hi="इस माह बुकिंग" />
-            <Kpi chip="success" icon={I.star} trend="9%" val="₹3.4 Cr" en="Revenue (GMV)" hi="राजस्व" />
-          </div>
-          <div className="kpi-grid">
-            <Kpi chip="info" icon={I.chart} trend="3%" val="78%" en="Avg. workforce utilisation" hi="औसत कार्यबल उपयोग" />
-            <Kpi chip="amber" icon={I.star} trend="0.1" val="4.8 ★" en="Avg. service rating" hi="औसत सेवा रेटिंग" />
-            <Kpi chip="" icon={I.shield} trend="6%" val="₹1.2 Cr" en="Welfare fund balance" hi="कल्याण कोष शेष" />
-            <Kpi chip="success" icon={I.grid} trend="1.5%" val="94%" en="Booking fill rate" hi="बुकिंग पूर्ति दर" />
-          </div>
+          <KpiStrip items={[
+            { val: "12,540", trend: "4.2%", en: "Total workers", hi: "कुल कार्यकर्ता" },
+            { val: "42", trend: "2", en: "Active societies", hi: "सक्रिय समितियाँ" },
+            { val: "18,320", trend: "12%", en: "Bookings this month", hi: "इस माह बुकिंग" },
+            { val: "₹3.4 Cr", trend: "9%", en: "Revenue (GMV)", hi: "राजस्व" },
+          ]} />
+          <KpiStrip items={[
+            { val: "78%", trend: "3%", en: "Avg. workforce utilisation", hi: "औसत कार्यबल उपयोग" },
+            { val: "4.8 ★", trend: "0.1", en: "Avg. service rating", hi: "औसत सेवा रेटिंग" },
+            { val: "₹1.2 Cr", trend: "6%", en: "Welfare fund balance", hi: "कल्याण कोष शेष" },
+            { val: "94%", trend: "1.5%", en: "Booking fill rate", hi: "बुकिंग पूर्ति दर" },
+          ]} />
 
           <div className="card ai-card panel mt-1">
             <div className="row-top between wrap-flex">
@@ -395,12 +402,12 @@ export default function FederationAdmin() {
 
         {/* WELFARE */}
         <View name="welfare">
-          <div className="kpi-grid">
-            <Kpi chip="" icon={I.shield} val="₹1.2 Cr" en="Welfare fund balance" hi="कल्याण कोष शेष" />
-            <Kpi chip="success" icon={I.star} val="11,980" en="Workers insured (₹5L cover)" hi="बीमित कार्यकर्ता" />
-            <Kpi chip="amber" icon={I.doc} val="342" en="Claims this quarter" hi="इस तिमाही दावे" />
-            <Kpi chip="info" icon={I.cal} val="18" en="Claims pending review" hi="लंबित दावे" />
-          </div>
+          <KpiStrip items={[
+            { val: "₹1.2 Cr", en: "Welfare fund balance", hi: "कल्याण कोष शेष" },
+            { val: "11,980", en: "Workers insured (₹5L cover)", hi: "बीमित कार्यकर्ता" },
+            { val: "342", en: "Claims this quarter", hi: "इस तिमाही दावे" },
+            { val: "18", en: "Claims pending review", hi: "लंबित दावे" },
+          ]} />
           <div className="dash-grid two mt-1">
             <div className="card panel">
               <div className="panel-head"><h3><T en="Fund health" hi="कोष स्वास्थ्य" /></h3></div>

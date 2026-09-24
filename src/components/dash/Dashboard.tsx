@@ -1,12 +1,12 @@
 "use client";
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
-import { T, useLang, useDashNav } from "@/lib/providers";
+import { T, useLang, useDashNav, useTheme, useToast, useAuth, useT } from "@/lib/providers";
 
 /* ---------------- Panel routing context ---------------- */
 type PanelCtx = { active: string; setActive: (v: string) => void };
 const PanelContext = createContext<PanelCtx>({ active: "", setActive: () => {} });
 
-export type NavItem = { view: string; en: string; hi: string; title?: string; icon: React.ReactNode };
+export type NavItem = { view: string; en: string; hi: string; title?: string; icon: React.ReactNode; group?: { en: string; hi: string } };
 export type ActionItem = { en: string; hi: string; icon: React.ReactNode; toast?: string };
 
 export function View({ name, children }: { name: string; children: React.ReactNode }) {
@@ -22,6 +22,9 @@ export function DashboardShell({
   eyebrow,
   subtitle,
   actions,
+  variant = "default",
+  brand,
+  topbarExtra,
   children,
 }: {
   who: { initials: string; name: string; role: { en: string; hi: string }; color: string; badge?: React.ReactNode };
@@ -31,13 +34,18 @@ export function DashboardShell({
   eyebrow?: { en: string; hi: string };
   subtitle?: { en: string; hi: string };
   actions?: React.ReactNode;
+  variant?: "default" | "admin";
+  brand?: { name: string; tagline: { en: string; hi: string }; mark?: React.ReactNode };
+  topbarExtra?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const home = nav[0]?.view ?? ""; // the panel's default/root section — its "home"
   const [active, setActive] = useState(home);
   const [stack, setStack] = useState<string[]>([]);
+  const [menuOpen, setMenuOpen] = useState(false);
   const { lang } = useLang();
   const { setDashNav } = useDashNav();
+  const admin = variant === "admin";
 
   // Refs so the (native) hardware-back listener, registered once, always reads
   // the latest state without being re-attached on every navigation.
@@ -136,39 +144,60 @@ export function DashboardShell({
 
   return (
     <PanelContext.Provider value={{ active, setActive }}>
-      <div className="dash">
-        <aside className="sidebar">
-          <div className="who">
-            <span className="avatar" style={{ width: 40, height: 40, background: who.color }}>{who.initials}</span>
-            <div>
-              <b>{who.name}</b>
-              <span><T en={who.role.en} hi={who.role.hi} /></span>
+      <div className={"dash" + (admin ? " dash-aevi" : "")}>
+        <aside className={"sidebar" + (menuOpen ? " open" : "")}>
+          {admin && brand ? (
+            <div className="aevi-brand">
+              <span className="aevi-mark">{brand.mark}</span>
+              <div>
+                <b>{brand.name}</b>
+                <span><T en={brand.tagline.en} hi={brand.tagline.hi} /></span>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="who">
+              <span className="avatar" style={{ width: 40, height: 40, background: who.color }}>{who.initials}</span>
+              <div>
+                <b>{who.name}</b>
+                <span><T en={who.role.en} hi={who.role.hi} /></span>
+              </div>
+            </div>
+          )}
           {who.badge}
           <nav className="side-nav">
-            {nav.map((n) => (
-              <a
-                key={n.view}
-                href={"#" + n.view}
-                className={active === n.view ? "active" : ""}
-                onClick={(e) => {
-                  e.preventDefault();
-                  go(n.view);
-                }}
-              >
-                {n.icon}
-                <span><T en={n.en} hi={n.hi} /></span>
-              </a>
-            ))}
-            {sideLabel && <span className="side-label"><T en={sideLabel.en} hi={sideLabel.hi} /></span>}
+            {nav.map((n, i) => {
+              const prev = nav[i - 1];
+              const showGroup = admin && n.group && (!prev || prev.group?.en !== n.group.en);
+              return (
+                <React.Fragment key={n.view}>
+                  {showGroup && <span className="side-group"><T en={n.group!.en} hi={n.group!.hi} /></span>}
+                  <a
+                    href={"#" + n.view}
+                    className={active === n.view ? "active" : ""}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      go(n.view);
+                      setMenuOpen(false);
+                    }}
+                  >
+                    {n.icon}
+                    <span><T en={n.en} hi={n.hi} /></span>
+                  </a>
+                </React.Fragment>
+              );
+            })}
+            {sideLabel && <span className={admin ? "side-group" : "side-label"}><T en={sideLabel.en} hi={sideLabel.hi} /></span>}
             {extraNav.map((a, i) => (
-              <ToastLink key={i} item={a} />
+              <ToastLink key={i} item={a} onNavigate={() => setMenuOpen(false)} />
             ))}
           </nav>
         </aside>
+        {admin && menuOpen && <div className="aevi-scrim" onClick={() => setMenuOpen(false)} />}
 
         <main className="dash-main">
+          {admin && (
+            <AdminTopBar nav={nav} active={active} go={go} onMenu={() => setMenuOpen((v) => !v)} extra={topbarExtra} />
+          )}
           {stack.length > 0 && active !== home && (
             <button type="button" className="btn-back" onClick={goBack}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
@@ -177,6 +206,7 @@ export function DashboardShell({
           )}
           <div className="dash-head between">
             <div>
+              {admin && <span className="aevi-crumb">{title}</span>}
               {eyebrow && <span className="eyebrow"><T en={eyebrow.en} hi={eyebrow.hi} /></span>}
               <h1>{title}</h1>
               {subtitle && <p className="text-muted mt-1"><T en={subtitle.en} hi={subtitle.hi} /></p>}
@@ -190,14 +220,70 @@ export function DashboardShell({
   );
 }
 
-import { useToast } from "@/lib/providers";
-function ToastLink({ item }: { item: ActionItem }) {
+function ToastLink({ item, onNavigate }: { item: ActionItem; onNavigate?: () => void }) {
   const { show } = useToast();
   return (
-    <a href="#" onClick={(e) => { e.preventDefault(); if (item.toast) show(item.toast); }}>
+    <a href="#" onClick={(e) => { e.preventDefault(); if (item.toast) show(item.toast); onNavigate?.(); }}>
       {item.icon}
       <span><T en={item.en} hi={item.hi} /></span>
     </a>
+  );
+}
+
+/* ---------------- Aevidine-style admin top bar ----------------
+   Sidebar-only chrome (no global site nav on the admin route): a section
+   scope selector on the left, and a live/notify/theme/logout cluster on
+   the right — mirroring the reference admin console. */
+function AdminTopBar({
+  nav,
+  active,
+  go,
+  onMenu,
+  extra,
+}: {
+  nav: NavItem[];
+  active: string;
+  go: (v: string) => void;
+  onMenu: () => void;
+  extra?: React.ReactNode;
+}) {
+  const { theme, toggle } = useTheme();
+  const { logout } = useAuth();
+  const { show } = useToast();
+  const t = useT();
+  return (
+    <div className="aevi-topbar">
+      <button type="button" className="aevi-burger" onClick={onMenu} aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M3 12h18M3 18h18" /></svg>
+      </button>
+      <div className="aevi-scope">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l1-5h16l1 5M5 9v11h14V9M9 20v-6h6v6" /></svg>
+        <select value={active} onChange={(e) => go(e.target.value)} aria-label="Section">
+          {nav.map((n) => (
+            <option key={n.view} value={n.view}>{n.title ?? t(n.en, n.hi)}</option>
+          ))}
+        </select>
+        <svg className="aevi-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6" /></svg>
+      </div>
+      <div className="aevi-actions">
+        <span className="aevi-live"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20V8" /></svg> Live</span>
+        <button type="button" className="aevi-icon" aria-label="Notifications" onClick={() => show("No new alerts")}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0" /></svg>
+          <span className="aevi-badge">3</span>
+        </button>
+        <button type="button" className="aevi-icon" aria-label="Toggle theme" onClick={toggle}>
+          {theme === "dark" ? (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
+          ) : (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></svg>
+          )}
+        </button>
+        <button type="button" className="aevi-icon" aria-label="Sign out" onClick={() => { show("Signed out"); logout(); }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg>
+        </button>
+        {extra}
+      </div>
+    </div>
   );
 }
 
