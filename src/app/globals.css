@@ -1198,7 +1198,16 @@ html, body { overflow-x: clip; overflow-y: visible; }
     overflow-y: auto; overscroll-behavior: contain;
     border-right: 1px solid var(--border);
   }
-  .dash-aevi .dash-main { margin-left: 250px; min-height: 100vh; }
+  /* The content pane becomes its own scroll container so it carries a themed
+     scrollbar (like the sidebar) instead of the browser's default window bar. */
+  .dash-aevi .dash-main {
+    margin-left: 250px; height: 100vh; overflow: hidden auto; overscroll-behavior: contain;
+    scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+  }
+  .dash-aevi .dash-main::-webkit-scrollbar { width: 10px; }
+  .dash-aevi .dash-main::-webkit-scrollbar-track { background: transparent; }
+  .dash-aevi .dash-main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; border: 2px solid var(--background); }
+  .dash-aevi .dash-main:hover::-webkit-scrollbar-thumb { background: var(--muted-foreground); }
 }
 @media (min-width: 1600px) {
   .dash-aevi .sidebar { width: 272px; }
