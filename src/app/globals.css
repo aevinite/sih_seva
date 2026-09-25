@@ -1107,6 +1107,12 @@ html, body { overflow-x: clip; overflow-y: visible; }
 
 /* ---- Sidebar (white, grouped) ---- */
 .dash-aevi .sidebar { background: var(--surface); color: var(--foreground); border-right: 1px solid var(--border); padding: 16px 14px; }
+/* Themed sidebar scrollbar — no bright default bar clashing with dark mode */
+.dash-aevi .sidebar { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+.dash-aevi .sidebar::-webkit-scrollbar { width: 8px; }
+.dash-aevi .sidebar::-webkit-scrollbar-track { background: transparent; }
+.dash-aevi .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; border: 2px solid var(--surface); }
+.dash-aevi .sidebar:hover::-webkit-scrollbar-thumb { background: var(--muted-foreground); }
 .dash-aevi .aevi-brand { display: flex; align-items: center; gap: 11px; padding: 6px 6px 16px; margin-bottom: 6px; border-bottom: 1px solid var(--border); }
 .dash-aevi .aevi-mark { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: #0e1116; color: #f6c04a; flex: none; }
 [data-theme="dark"] .dash-aevi .aevi-mark { background: #05060a; }
