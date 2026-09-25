@@ -1181,3 +1181,20 @@ html, body { overflow-x: clip; overflow-y: visible; }
   .dash-aevi .aevi-burger { display: grid; width: 40px; height: 40px; border-radius: 10px; place-items: center; border: 1px solid var(--border); background: var(--surface); color: var(--foreground); flex: none; }
   .dash-aevi .aevi-burger svg { width: 20px; height: 20px; }
 }
+
+/* ---- Desktop: sidebar is fixed to the viewport so it stays put while the
+   content scrolls (the nav — down to Logout — no longer scrolls away, and the
+   sidebar column never stretches into a tall empty strip). ---- */
+@media (min-width: 1000px) {
+  .dash-aevi { display: block; }
+  .dash-aevi .sidebar {
+    position: fixed; top: 0; left: 0; width: 250px; height: 100vh; z-index: 40;
+    overflow-y: auto; overscroll-behavior: contain;
+    border-right: 1px solid var(--border);
+  }
+  .dash-aevi .dash-main { margin-left: 250px; min-height: 100vh; }
+}
+@media (min-width: 1600px) {
+  .dash-aevi .sidebar { width: 272px; }
+  .dash-aevi .dash-main { margin-left: 272px; }
+}
