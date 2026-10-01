@@ -9,7 +9,7 @@ export const supabaseAdmin = createClient(url, serviceKey, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
-// Table name helper (aw_ prefix keeps AeviWork isolated in the shared project)
+// Table name helper (AeviWork has its own dedicated Supabase project)
 export const T = {
   users: "aw_users",
   workers: "aw_worker_profiles",

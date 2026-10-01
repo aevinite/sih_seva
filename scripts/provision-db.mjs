@@ -110,6 +110,10 @@ create index if not exists idx_aw_bookings_customer on aw_bookings(customer_id);
 create index if not exists idx_aw_bookings_worker on aw_bookings(worker_id);
 create index if not exists idx_aw_bookings_status on aw_bookings(status);
 create index if not exists idx_aw_worker_verif on aw_worker_profiles(verification_status);
+create index if not exists idx_aw_certificates_worker on aw_certificates(worker_id);
+create index if not exists idx_aw_ratings_by_user on aw_ratings(by_user_id);
+create index if not exists idx_aw_ratings_worker on aw_ratings(worker_id);
+create index if not exists idx_aw_welfare_claims_worker on aw_welfare_claims(worker_id);
 
 -- Lock everything down: RLS on, no policies => anon key blocked, service role bypasses.
 alter table aw_users enable row level security;
